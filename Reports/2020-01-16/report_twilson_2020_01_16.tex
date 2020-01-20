@@ -1,81 +1,122 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%2345678901234567890123456789012345678901234567890123456789012345678901234567890
-%        1         2         3         4         5         6         7         8
+% mnras_template.tex
+%
+% LaTeX template for creating an MNRAS paper
+%
+% v3.0 released 14 May 2015
+% (version numbers match those of mnras.cls)
+%
+% Copyright (C) Royal Astronomical Society 2015
+% Authors:
+% Keith T. Smith (Royal Astronomical Society)
 
-% \documentclass[letterpaper, 10 pt, conference]{ieeeconf}  % Comment this line out
-                                                          % if you need a4paper
-\documentclass[a4paper, 10pt, conference]{ieeeconf}      % Use this line for a4
-                                                          % paper
+% Change log
+%
+% v3.0 May 2015
+%    Renamed to match the new package name
+%    Version number matches mnras.cls
+%    A few minor tweaks to wording
+% v1.0 September 2013
+%    Beta testing only - never publicly released
+%    First version: a simple (ish) template for creating an MNRAS paper
 
-\IEEEoverridecommandlockouts                              % This command is only
-                                                          % needed if you want to
-                                                          % use the \thanks command
-\overrideIEEEmargins
-% See the \addtolength command later in the file to balance the column lengths
-% on the last page of the document
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Basic setup. Most papers should leave these options alone.
+\documentclass[fleqn,usenatbib]{mnras}
+
+% MNRAS is set in Times font. If you don't have this installed (most LaTeX
+% installations will be fine) or prefer the old Computer Modern fonts, comment
+% out the following line
+\usepackage{newtxtext,newtxmath}
+% Depending on your LaTeX fonts installation, you might get better results with one of these:
+%\usepackage{mathptmx}
+%\usepackage{txfonts}
+
+% Use vector fonts, so it zooms properly in on-screen viewing software
+% Don't change these lines unless you know what you are doing
+\usepackage[T1]{fontenc}
+\usepackage{ae,aecompl}
 
 
+%%%%% AUTHORS - PLACE YOUR OWN PACKAGES HERE %%%%%
+\usepackage{bm}
+\usepackage[usenames, dvipsnames]{color}
+\usepackage{subcaption}
+\captionsetup{compatibility=false}
+% Only include extra packages if you really need them. Common packages are:
+\usepackage{graphicx}	% Including figure files
+\usepackage{amsmath}	% Advanced maths commands
+\usepackage{amssymb}	% Extra maths symbols
 
-% The following packages can be found on http:\\www.ctan.org
-%\usepackage{graphics} % for pdf, bitmapped graphics files
-%\usepackage{epsfig} % for postscript graphics files
-%\usepackage{mathptmx} % assumes new font selection scheme installed
-%\usepackage{times} % assumes new font selection scheme installed
-\usepackage{amsmath} % assumes amsmath package installed
-\usepackage{amssymb}  % assumes amsmath package installed
-\usepackage{graphicx}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\title{\LARGE \bf
-Report Jan 2020 -- Attempts at parameterising an empirical AUF
+%%%%% AUTHORS - PLACE YOUR OWN COMMANDS HERE %%%%%
+\graphicspath{{./Plots/}}
+% Please keep new commands to a minimum, and use \newcommand not \def to avoid
+% overwriting existing commands. Example:
+%\newcommand{\pcm}{\,cm$^{-2}$}	% per cm-squared
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%% TITLE PAGE %%%%%%%%%%%%%%%%%%%
+
+% Title of the paper, and the short title which is used in the headers.
+% Keep the title short and informative.
+\title[]{Report Jan 2020 – Attempts at parameterising an empirical AUF}
+
+% The list of authors, and the short list which is used in the headers.
+% If you need two or more lines of authors, add an extra line using \newauthor
+\author[Tom J. Wilson and Tim Naylor]{
+Tom J. Wilson
+and Tim Naylor
+\\
 }
 
+% These dates will be filled out by the publisher
+\date{}
 
-\author{Tom J. Wilson% <-this % stops a space
-}	
+% Enter the current year, for the copyright statements etc.
+\pubyear{2020}
 
-% currently to create AUFs we simulate PSFs with monte carlo random runs, based on stellar/galactic number densities -- previously this was fine because we could use simulated Milky Way data, but LSST goes too faint
-% attempts at creating in situ AUFs, which can therefore contain all non-statistical-noise related perturbations to source positions, using the data themselves
-% to do so we need both cross-matches (using Gaia to have an essentially one-sided problem) to create AUFs for those sources we detect; and could then consider first moments of randomly placed PSF circles where no star exists -- or residuals, if detected source subtracted images were available -- in data frames to get the AUF of stars below the detection limit of the survey
-
-% to get the "extra" terms in the AUF for cross-matches, we can simply deconvolve the statistical gaussian component
-% however, previous code using Hankel transforms for the radially symmetric Fourier-Bessel transforms is not sufficiently high resolution to capture the necessary precision for division -- for convolution instead of deconvolution this is ok because the numerical inprecision goes away, but with a ratio the error is magnified
-% thus an attempt was made to fit a MoG model to the full cross-match AUF, on the grounds that convolution, and deconvolution, of gaussians is an analytic expression. However, limitations on sigma being >= sigma_statistical (to avoid imaginary numbers in the deconvolution) result in an unphysical perturbation AUF, which may technically work but does not inform about the system at all.
-
-% also explored the attempts to consolidate the number of parameters needed to describe the AUF, by testing whether an effective stellar density could be used, instead of an overall normalising density -- this may work for the very brightest sources where almost all fainter objects in questions are described by a power law (which allows it to work), but very rapidly the turnover in stellar counts renders the tradeoff between central star magnitude and overall local density asymmetric
-
-
+% Don't change these lines
 \begin{document}
+\label{firstpage}
+\pagerange{\pageref{firstpage}--\pageref{lastpage}}
 \maketitle
-\thispagestyle{empty}
-\pagestyle{empty}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
+
+Given the depths that LSST will reach, we possibly require a different approach than previously undertaken to compute the perturbation component of the Astrometric Uncertainty Function (AUF) for probabilistic photometric catalogue cross-matching. We document here an attempt to derive this AUF -- along with any other non-statistical AUF component, such as proper motions or binary reflex motion -- from the data themselves, creating in-situ AUFs which do not rely on simulation.
 
 \end{abstract}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Introduction}
+\section{Introduction}
 
-\addtolength{\textheight}{-12cm}   % This command serves to balance the column lengths
-                                  % on the last page of the document manually. It shortens
-                                  % the textheight of the last page by a suitable amount.
-                                  % This command does not take effect until the next page
-                                  % so it should come on the page before the last. Make
-                                  % sure that you do not shorten the textheight too much.
+The Astrometric Uncertainty Function (AUF) is the probability density function (PDF) describing the probability of a source being detected at some position given its true location. The probability of two sources being the same intrinsic object detected twice given their respective locations -- or the distance between their given positions -- is the convolution of their respective AUFs. Each AUF is, itself, a convolution of the individual components describing its offset from its ``true'' location. The first of these, and typically the only component used, is its statistical component, in which Poisson noise in a photometric image causes the centroiding of a source imperfectly.
+
+A second critical component in crowded regions, or in photometric surveys which probe significant depths relative to the length scale of the survey PSF (of which LSST and \textit{WISE} are both subject), is the perturbation from blended sources. These objects, while hidden beneath the flux from a brighter source, contaminant the central object by both adding additional flux, and by tugging on the center-of-light of the composite object. Thus, in this simple two-component model, the AUF is
+
+\begin{equation}
+h(\textbf{x}) = (f_\mathrm{stat} * f_\mathrm{blend})(\textbf{x})
+\end{equation}
+where the notation $(f * g)(x)$ denotes a convolution.
+
+Previously, \citet{2018MNRAS.481.2148W} produced $f_\mathrm{blend}$ by a Monte Carlo simulation, via Galactic stellar densities from a TRILEGAL simulation \citep{Girardi2005}. However, the limiting magnitude of these simulations -- via the public API -- is 32nd magnitude; this was fine for \textit{WISE} where we still had access to stars 10 magnitudes fainter than the limit of the survey (necessary for probing the faintest flux ratios and sufficiently small flux weighted astrometric perturbations), being brighter than $W1=32$. However, the limiting magnitude of LSST is about 27th magnitude, and thus the magnitude limit is out of the range of the TRILEGAL simulations.
+
+\section{In situ AUF}
+Thus the need for deriving empirical AUFs was born. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\bibliographystyle{authoryear}
+\bibliographystyle{mnras}
 \bibliography{../../../../Dropbox/PostDoc_Exeter/LaTeX/postdoc_papers_jr2}
 
+
+
+% Don't change these lines
+\bsp	% typesetting comment
+\label{lastpage}
 \end{document}
+
+% End of mnras_template.tex
