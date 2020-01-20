@@ -89,6 +89,11 @@ Given the depths that LSST will reach, we possibly require a different approach 
 
 \end{abstract}
 
+% to do so we need both cross-matches (using Gaia to have an essentially one-sided problem) to create AUFs for those sources we detect; and could then consider first moments of randomly placed PSF circles where no star exists -- or residuals, if detected source subtracted images were available -- in data frames to get the AUF of stars below the detection limit of the survey
+
+% thus an attempt was made to fit a MoG model to the full cross-match AUF, on the grounds that convolution, and deconvolution, of gaussians is an analytic expression. However, limitations on sigma being >= sigma_statistical (to avoid imaginary numbers in the deconvolution) result in an unphysical perturbation AUF, which may technically work but does not inform about the system at all.
+
+% also explored the attempts to consolidate the number of parameters needed to describe the AUF, by testing whether an effective stellar density could be used, instead of an overall normalising density -- this may work for the very brightest sources where almost all fainter objects in questions are described by a power law (which allows it to work), but very rapidly the turnover in stellar counts renders the tradeoff between central star magnitude and overall local density asymmetric
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
@@ -105,7 +110,43 @@ where the notation $(f * g)(x)$ denotes a convolution.
 Previously, \citet{2018MNRAS.481.2148W} produced $f_\mathrm{blend}$ by a Monte Carlo simulation, via Galactic stellar densities from a TRILEGAL simulation \citep{Girardi2005}. However, the limiting magnitude of these simulations -- via the public API -- is 32nd magnitude; this was fine for \textit{WISE} where we still had access to stars 10 magnitudes fainter than the limit of the survey (necessary for probing the faintest flux ratios and sufficiently small flux weighted astrometric perturbations), being brighter than $W1=32$. However, the limiting magnitude of LSST is about 27th magnitude, and thus the magnitude limit is out of the range of the TRILEGAL simulations.
 
 \section{In situ AUF}
-Thus the need for deriving empirical AUFs was born. 
+Thus the need for deriving empirical AUFs was born. Instead of modelling the perturbations from each component individually -- simulating blended source position shifts, unknown proper motions, etc. -- we could extract from the data themselves the AUF describing \textit{all} components, minus the statistical noise component, and use the data-driven AUF subsequently.
+
+The idea here was that we can reverse the equation above, and compute $f_\mathrm{blend}$ directly from knowing the presciption for the statistical AUF and the total PDF describing the probability of two detections being the same source detected twice given their separation. To this end we matched the \textit{WISE} data, thought to be well understood and accurately described by its quoted uncertainties, to \textit{Gaia} data, again using the high precision on the \textit{Gaia} dataset to effectively reduce the convolution of the two datasets to that of just the \textit{WISE} data, allowing for a one-sided probe of the test.
+
+We are therefore looking for the deconvolution of $f_\mathrm{stat}$ and $f_\mathrm{deblend}$, for which we can turn to Fourier transforms. Where $\mathcal{F}[f(x)](\rho)$ denotes the Fourier transform of $f$, we have
+
+\begin{equation}
+	h = f * g
+\end{equation}
+and, if we take the Fourier transform,
+
+\begin{equation}
+H = F \times G
+\end{equation}
+where in Fourier space the convolution is denoted by a simple multiplication. Thus we can solve for $G$ -- or $f_\mathrm{blend}$ -- as
+
+\begin{equation}
+	G = H / F
+\end{equation}
+and inverse Fourier transform, giving
+
+\begin{equation}
+	f_\mathrm{blend}(\textbf{x}) = \mathcal{F}^{-1}\left[\mathcal{F}[h(\textbf{x})](\rho) / \mathcal{F}[f_\mathrm{stat}(\textbf{x})](\rho)\right](\textbf{x}).
+\end{equation}
+
+\subsection{Computing the Fourier Transforms}
+
+To reduce the computational expense of a two-dimensional convolution by simplifying it to a 1D integral, we use the Hankel transform,
+
+\begin{equation}
+\mathcal{F}[f(r, \theta)](\rho) = \mathcal{F}[f(r)](\rho) = 2 \pi \int\limits_0^\infty\!r f(r) J_0(2 \pi r \rho)\,\mathrm{d}r
+\end{equation}
+where we assume circular symmetry (i.e., the Hankel transform, or Fourier-Bessel transform, is a two-dimensional Fourier transform under the assumption of a radially symmetric integral kernel) and $J_0$ is the zeroth order Bessel function of first kind. This is computed via a series of small $\Delta r$ bins with each function evaluated at small $r$ (or $\rho$ for an inverse transform) offsets, for a given $\rho$ (or $r$, for inverse transforms).
+
+There is, however, a small instability in this function computed numerically --- no matter how finely you evaluate the functions, $J_0$, effectively a combination of a $1/\sqrt(x)$ function and a $\cos(x)$ function, cannot be reasonably computed with sufficient precision at high $\rho$ in the Fourier transform. At large $\rho$, the $\cos(x)$ component of $J_0$ becomes very rapid, cyling completely every $1/r$ steps (remember it is $J_0(2 \pi r \rho)$ and thus goes as $\cos(2 \pi r \rho)$). While this numerical instability is acceptable for a \textit{convolution} (being of order $10^{-5}$), as a convolution \textit{multiplies} Fourier tranforms, and thus our large scale Fourier transform values, which should be effectively zero, are truncated at $10^{-10}$, and thus do not contribute much when inverse Fourier transformed. Unfortunately, for a \textit{deconvolution}, the functions are \textit{divided}, resulting in an inverse Fourier transform which, for large $\rho$, has a constant \textit{but significant} value -- tending to of order unity. We therefore cannot compute the deconvolution numerically.
+
+\subsection{Mixture of Gaussian Model}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
