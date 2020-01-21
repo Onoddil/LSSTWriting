@@ -85,15 +85,12 @@ and Tim Naylor
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
 
-Given the depths that LSST will reach, we possibly require a different approach than previously undertaken to compute the perturbation component of the Astrometric Uncertainty Function (AUF) for probabilistic photometric catalogue cross-matching. We document here an attempt to derive this AUF -- along with any other non-statistical AUF component, such as proper motions or binary reflex motion -- from the data themselves, creating in-situ AUFs which do not rely on simulation.
+Given the depths that LSST will reach, we possibly require a different approach than previously undertaken to compute the perturbation component of the Astrometric Uncertainty Function (AUF) for probabilistic photometric catalogue cross-matching. We document here an attempt to derive this AUF -- along with any other non-statistical AUF component, such as proper motions or binary reflex motion -- from the data themselves, creating in-situ AUFs which do not rely on simulation. Conclusions are currently inconclusive as to whether this is possible, however.
 
 \end{abstract}
 
 % to do so we need both cross-matches (using Gaia to have an essentially one-sided problem) to create AUFs for those sources we detect; and could then consider first moments of randomly placed PSF circles where no star exists -- or residuals, if detected source subtracted images were available -- in data frames to get the AUF of stars below the detection limit of the survey
 
-% thus an attempt was made to fit a MoG model to the full cross-match AUF, on the grounds that convolution, and deconvolution, of gaussians is an analytic expression. However, limitations on sigma being >= sigma_statistical (to avoid imaginary numbers in the deconvolution) result in an unphysical perturbation AUF, which may technically work but does not inform about the system at all.
-
-% also explored the attempts to consolidate the number of parameters needed to describe the AUF, by testing whether an effective stellar density could be used, instead of an overall normalising density -- this may work for the very brightest sources where almost all fainter objects in questions are described by a power law (which allows it to work), but very rapidly the turnover in stellar counts renders the tradeoff between central star magnitude and overall local density asymmetric
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
@@ -107,7 +104,7 @@ h(\textbf{x}) = (f_\mathrm{stat} * f_\mathrm{blend})(\textbf{x})
 \end{equation}
 where the notation $(f * g)(x)$ denotes a convolution.
 
-Previously, \citet{2018MNRAS.481.2148W} produced $f_\mathrm{blend}$ by a Monte Carlo simulation, via Galactic stellar densities from a TRILEGAL simulation \citep{Girardi2005}. However, the limiting magnitude of these simulations -- via the public API -- is 32nd magnitude; this was fine for \textit{WISE} where we still had access to stars 10 magnitudes fainter than the limit of the survey (necessary for probing the faintest flux ratios and sufficiently small flux weighted astrometric perturbations), being brighter than $W1=32$. However, the limiting magnitude of LSST is about 27th magnitude, and thus the magnitude limit is out of the range of the TRILEGAL simulations.
+Previously, \citet{2018MNRAS.481.2148W} produced $f_\mathrm{blend}$ by a Monte Carlo simulation, via Galactic stellar densities from a \textsc{trilegal} simulation \citep{Girardi2005}. However, the limiting magnitude of these simulations -- via the public API -- is 32nd magnitude; this was fine for \textit{WISE} where we still had access to stars 10 magnitudes fainter than the limit of the survey (necessary for probing the faintest flux ratios and sufficiently small flux weighted astrometric perturbations), being brighter than $W1=32$. However, the limiting magnitude of LSST is about 27th magnitude, and thus the magnitude limit is out of the range of the \textsc{trilegal} simulations.
 
 \section{In situ AUF}
 Thus the need for deriving empirical AUFs was born. Instead of modelling the perturbations from each component individually -- simulating blended source position shifts, unknown proper motions, etc. -- we could extract from the data themselves the AUF describing \textit{all} components, minus the statistical noise component, and use the data-driven AUF subsequently.
@@ -147,6 +144,50 @@ where we assume circular symmetry (i.e., the Hankel transform, or Fourier-Bessel
 There is, however, a small instability in this function computed numerically --- no matter how finely you evaluate the functions, $J_0$, effectively a combination of a $1/\sqrt(x)$ function and a $\cos(x)$ function, cannot be reasonably computed with sufficient precision at high $\rho$ in the Fourier transform. At large $\rho$, the $\cos(x)$ component of $J_0$ becomes very rapid, cyling completely every $1/r$ steps (remember it is $J_0(2 \pi r \rho)$ and thus goes as $\cos(2 \pi r \rho)$). While this numerical instability is acceptable for a \textit{convolution} (being of order $10^{-5}$), as a convolution \textit{multiplies} Fourier tranforms, and thus our large scale Fourier transform values, which should be effectively zero, are truncated at $10^{-10}$, and thus do not contribute much when inverse Fourier transformed. Unfortunately, for a \textit{deconvolution}, the functions are \textit{divided}, resulting in an inverse Fourier transform which, for large $\rho$, has a constant \textit{but significant} value -- tending to of order unity. We therefore cannot compute the deconvolution numerically.
 
 \subsection{Mixture of Gaussian Model}
+Instead of attempting the deconvolution head-on, however, we can sidestep the issue of fourier transform stability altogether. The convolution of two Gaussian functions is analytically known -- the new variance is simply the sum of the variances of the original two functions. Thus, if we were able to describe the total AUF as a sum of $N$ Gaussians, we could trivially remove the statistical noise component of the AUF. To do so we fit a Mixture of Gaussian model (MoG),
+
+\begin{equation}
+	f(x) = \sum\limits_i \frac{a_i}{2 \pi \sigma_i^2} \exp{\left(-\frac{1}{2}\frac{x^2}{\sigma_i^2}\right)}
+\end{equation}
+where $\sum_i a_i = 1$ to ensure proper normalisation. We fit this via the \textsc{scipy} package module \textsc{basinhopping} (and \textsc{minimize}), although as we fit to the separation \textit{counts} we fit a Rayleigh distribution, as opposed to a Gaussian distribution, and thus fit
+
+\begin{equation}
+	f(x) = \sum\limits_i \frac{a_i x}{\sigma_i^2} \exp{\left(-\frac{1}{2}\frac{x^2}{\sigma_i^2}\right)}
+\end{equation}
+again assuming circular symmetry. We also limited all $\sigma_i > \sigma_\mathrm{stat}$ to ensure a non-imaginary uncertainty in the deconvolution AUF, computed as $\sigma_{\mathrm{blend}, i} = \sqrt{\sigma_i^2 - \sigma_\mathrm{stat}^2}$, giving
+
+\begin{equation}
+	f_\mathrm{blend}(x) = \sum\limits_i \frac{a_i}{\sigma_{2 \pi \mathrm{blend}, i}^2} \exp{\left(-\frac{1}{2}\frac{x^2}{\sigma_{\mathrm{blend}, i}^2}\right)}.
+\end{equation}
+
+This process was repeated for steps of one magnitude $9 \leq W1 \leq 17$ (plus $W1=16.5$, as $W1=17$ suffered from potential small-number statistics effects), for small steps in normalising density ($\Delta N=0.01$, fitting total star counts $W1\lesssim15$ to $N z^m$), magnitude ($\Delta W1 \leq 0.1$, except $\Delta W1=0.3$ for $W1=17$), and quoted astrometric uncertainty ($\Delta \sigma \leq 0.01$, except $\Delta \sigma=0.02$ for $W1=17$). All results have $\chi_\nu^2 \leq 2$ (except $W1=11$ where $\chi_\nu^2 = 3.5$) and thus for the most part suggest good fits to the data, an example of which is shown in Figure \ref{fig:w1_9_tot}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{{w1_9_total_fit}.png}
+    \caption{Fit of a Mixture of Gaussian model to \textit{Gaia}-\textit{WISE} nearest neighbour matches for $W1=9$. Red line is MoG model, solid black histogram shows cross-match countrate, and dashed black line is the instrinsic astrometric uncertainty.}
+    \label{fig:w1_9_tot}
+\end{figure}
+
+However, Figure \ref{fig:w1_9_deconv} shows the resulting deconvolved AUF, with the statistical component removed. Also shown is a Monte Carlo simulation (as per \citealt{2018MNRAS.481.2148W}), with little agreement between the two. We currently cannot explain the physicality of the MoG deconvolved model, as technically there are many $g$ distributions which, when convolved with $f$, can reproduce $h$.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{{w1_9_deconvolve}.png}
+    \caption{Deconvolution of MoG model to \textit{Gaia}-\textit{WISE} sources for $W1=9$. Solid black histogram is the Monte Carlo simulation distribution of perturbation offsets, with the MoG model deconvolved shown in red.}
+    \label{fig:w1_9_deconv}
+\end{figure}
+
+
+\section{AUF Parameter Reduction}
+During this process we also attempted to explore the possibility of reducing the number of free parameters for the description of a perturbation AUF. Currently, based on the \textsc{trilegal} simulations, we require knowledge of the Galactic coordinates ($l$ and $b$, e.g.), central source brightness, and normalising density $N$ (used to scale the \textsc{trilegal} simulated star counts). However, where star counts are described as a power law, each step in magnitude results in a factor $z$ increase in \textit{relative} star counts. Thus, perhaps, we could remove $N$ as a factor and instead use $N_\mathrm{eff}$, this ``relative'' density.
+
+To test this, we took the previously computed perturbation AUFs -- whether physical or not, their convolution with a statistical AUF component \textit{does} describe the total AUF of the data well -- and convolved it with the statistical uncertainty of a new set of sources, with magnitude $m+\mathrm{d}m$. Again we forced the width of $\Delta N$, $\Delta m$, and $\Delta\sigma$ to be small, and re-selected based on the mode $\sigma_\mathrm{stat}$ and a new normalising density, a factor $z^{\mathrm{d}m}$ smaller.
+
+While the brightness of the central source is bright, and the power-law distribution of perturbing source counts holds (for most sources, anyway), this distribution is well fit by the new AUF. However, when the central source is fainter, and most perturbing sources are in the turnover of source counts (see Figure 5, \citealt{2018MNRAS.481.2148W}), we overestimate the number of these perturbing objects, and thus have an AUF which is too broad, and a poor fit to the data.
+
+\section{Conclusions}
+We have explored some attempts to move the full perturbation-inclusive AUF to a new regime with LSST, in which we will have a greater ability to use image frame-level information to better capture the effects of blended sources. Unfortunately, preliminary investigations are inconclusive and ongoing, with a MoG fit to the data which does not currently have a physical explanation. If we can explain the effects and fully parameterise the distributions with MoG models, and thus analytically convolve statistical noise separations with further systematic offsets, we can look further to using LSST images -- detected source residuals or ``empty'' sky otherwise -- to characterise the perturbations of sources below the detection limit, extending the data-driven AUF to fainter magnitudes still.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
