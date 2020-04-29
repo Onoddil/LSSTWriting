@@ -85,7 +85,7 @@ and Tim Naylor
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
 
-While we were unable to create physically motivated empirical AUFs from the data in situ, this may not necessarily be required. The current model used to simulate the effects of crowded sources on the bright central object is limited to 32nd magnitude, which originally was troublesome as LSST will reach depths of 27th magnitude at its deepest. Here we show that the original issue of requiring $\Delta m \leq 10$ -- a requirement imposed by \citet{2018MNRAS.481.2148W} -- can be sidestepped, at least for LSST, by consideration of the noise levels of a given observation. Simple noise considerations show that at the faint end of a survey it is only necessary to consider perturbers up to 5 magnitudes fainter than the central source, for a very conservative estimate of including sources up to 5\% the noise of the primary object in the PSF. Additionally, we derive a more accurate model to describe the perturbations of sources in the background-dominated case, crucial for ensuring the AUFs of the very crowded, faintest LSST objects are as well-modelled as possible.
+While we were unable to create physically motivated empirical AUFs from the data in situ to satisfy WP deliverable 3.11.1, this may not necessarily be required. The current model used to simulate the effects of crowded sources on the bright central object is limited to 32nd magnitude, which originally was troublesome as LSST will reach depths of 27th magnitude at its deepest. Here we show that the original issue of requiring $\Delta m \leq 10$ -- a requirement imposed by \citet{2018MNRAS.481.2148W} -- can be sidestepped, at least for LSST, by consideration of the noise levels of a given observation. Simple noise considerations show that at the faint end of a survey it is only necessary to consider perturbers up to 5 magnitudes fainter than the central source, for a very conservative estimate of including sources up to 5\% the noise of the primary object in the PSF. Additionally, we derive a more accurate model to describe the perturbations of sources in the background-dominated case, crucial for ensuring the AUFs of the very crowded, faintest LSST objects are as well-modelled as possible. This model, and the AUF previously derived for bright objects whose source noise is dominant, are then parameterised as a piecemeal function, allowing for the smooth transition from the source-dominated to the background-dominated AUF regime.
 
 \end{abstract}
 
@@ -94,11 +94,14 @@ While we were unable to create physically motivated empirical AUFs from the data
 While we could not empirically derive physically motivated AUFs for modelling the non-statistical effects influencing the recorded positions of sources in photometric catalogues, we can improve the model used to create the AUF component describing the offset of two measurements of the positions of a given source on the sky caused by the effects of blended sources in one or both catalogues. Here we consider two effects which will play a significant role in the application of a Bayesian cross-matching algorithm to the identification of sources across two potentially crowded photometric catalogues: first, the description of the algorithm used to derive the positions and fluxes of the central source, implicitly encoding in its derived quantities the effects of any blended objects unresolved by the pipeline of the given survey; and second, the effect that noise will play on the limits on the influence of vanishingly faint objects on these same quantities.
 
 \section{Deriving a more accurate AUF in the sky background limited case}
-Previously, the algorithm used by \cite{2018MNRAS.481.2148W} to create fake Monte Carlo PSFs from which the average quantities affecting the systematic offsets of the recorded positions of a given astrophysical object used a relatively simple and naive flux-weighted average scheme. The astrometric \textit{perturbation} of a central source, caused by fainter unresolved objects within a \citet{1880MNRAS..40..254R} criterion of 1.185 full-width at half maximums (FWHMs)\footnote{Although some surveys, due to non-Gaussian wings in the telescope PSF, may have slightly larger unresolveable regions; \textit{WISE}, for instance, cannot resolve sources within 1.3FWHM -- see \citet{Cutri:2012aa}, section 4.4c.} was simply given by $x_\mathrm{pertub} = (0 + \sum_i x_i f_i) / (1 + \sum_i f_i)$ where $f$ is the relative flux between the central object, defined as $f=1$, and the faint perturber. The photometric \textit{contamination} was quoted as being $\sum_i f_i$ -- i.e., it was assumed that if there was 10\% additional flux inside the system, either as two sources with 5\% relative flux or a single object a tenth the brightness, the resultant photometric catalogue was 1.1 times too bright.
+\label{sec:loglfit}
+Previously, the algorithm used by \cite{2018MNRAS.481.2148W} to create fake Monte Carlo PSFs from which the average quantities affecting the systematic offsets of the recorded positions of a given astrophysical object used a relatively simple and naive flux-weighted average scheme. The astrometric \textit{perturbation} of a central source, caused by fainter unresolved objects within a \citet{1880MNRAS..40..254R} criterion of 1.185 full-width at half maximums (FWHMs)\footnote{Although some surveys, due to non-Gaussian wings in the telescope PSF, may have slightly larger unresolveable regions; \textit{WISE}, for instance, cannot resolve sources within 1.3FWHM -- see \citet{Cutri:2012aa}, section 4.4c.} was simply given by $x_\mathrm{pertub} = (0 + \sum_i x_i f_i) / (1 + \sum_i f_i)$ where $f$ is the relative flux between the central object, defined as $f=1$, and the faint perturber. The photometric \textit{contamination} was quoted as being $\sum_i f_i$ -- i.e., it was assumed that if there was 10\% additional flux inside the system, either as two sources with 5\% relative flux or a single object a tenth the brightness, the resultant photometric catalogue object was 1.1 times too bright.
 
 This simple model should be true for the case of aperture photometry, where any extra flux \textit{is} simply added to the total brightness of the central object when counting the flux within the aperture. The first moment -- used to derive the position of the source -- will result in essentially a flux-weighted average position, taking into consideration edge cases where a bright object appears just inside the aperture radius. However, if a more complicated model is used, and sources are fit with a PSF to derive their flux and centroid position then this assumption may not hold. Indeed, the case considered in \citet{2018MNRAS.481.2148W} is that of \textit{WISE}, which has a robust PSF fitting routine for its derived positions and flux measurements.
 
 \subsection{The log-likelihood PSF fitting method}
+\subsubsection{Log-likelihood maximisation}
+\label{sec:loglmax}
 Taking the slightly simplifying assumption that the PSF in question is described by a Gaussian, we can state the fitting process as a minimisation problem, which can equally be thought of as a likelihood maximisation problem. This equation, using a similar notation to that given by \citet{2018MNRAS.476.4372}, equation 1, is
 
 \begin{equation}
@@ -108,17 +111,24 @@ Taking the slightly simplifying assumption that the PSF in question is described
 where we are minimising the square of the differences between two models, one with unity flux (up to a scaling factor of $L$) at the origin and another with relative flux $f$ at position vector $\mathbf{d}$, and a single model with brightening $\Delta f$ at perturbation vector $\mathbf{r - \Delta d}$. Here $\phi$ is the equation describing the circularly symmetric Gaussian PSF,
 
 \begin{equation}
-    \phi(\mathbf{r}) = \phi(\mathbf{r}, \sigma_\phi) = \frac{1}{2\pi \sigma_\phi}\mathrm{exp}\left(-\frac{1}{2} \frac{\mathbf{r}^2}{\sigma_\phi^2}\right).
+    \phi(\mathbf{r}) = \phi(\mathbf{r}, \sigma_\phi) = \frac{1}{2\pi \sigma_\phi^2}\mathrm{exp}\left(-\frac{1}{2} \frac{\mathbf{r}^2}{\sigma_\phi^2}\right).
 \end{equation}
+We can extend this easily to more than one perturber, now fitting for $N+1$ sources with a single composite PSF, as
+\begin{align}
+\begin{split}
+    \mathrm{log}\,\mathcal{L} = -\frac{1}{2}\times L \int\limits_{-\infty}^\infty\! \bigg[&\phi(\mathbf{r}) + \sum_i f_i\phi(\mathbf{r} - \mathbf{d}_i)\, - \\&(1 + \Delta f)\phi(\mathbf{r - \Delta d})\bigg]^2 \mathrm{d}^2r,
+\label{eq:logL2}
+\end{split}
+\end{align}
 
-Expanding the brackets results in six integrand terms, each of which has a multiplicitive factor in front of the multiple of two $\phi$ terms, with relative offsets (e.g., the second term would be $A\phi(\mathbf{r})\phi(\mathbf{r - d})$). These terms, integrated over all space, are the convolution of the two Gaussians, offset by some vector $\mathbf{d}$, and thus each of the six integrals can be analytically computed as six convolutions. As each $\phi$ term has the same uncertainty $\sigma_\phi$, the resultant Gaussian has an uncertainty of $\sqrt{2}\sigma_\phi$, as Gaussian convolutions result in a Gaussian with a variance the quadrature sum of the two composite variances. We therefore, for notation's sake, define a new term
+Expanding the brackets results in six integrand terms, each of which has a multiplicitive factor in front of the multiple of two $\phi$ terms, with relative offsets (e.g., the second term would be $-\frac{1}{2}L\sum_i f_i\phi(\mathbf{r})\phi(\mathbf{r - d})$). These terms, integrated over all space, are the convolution of the two Gaussians, offset by a given vector, and thus each of the six integrals can be analytically computed as six convolutions. As each $\phi$ term has the same uncertainty $\sigma_\phi$, the resultant Gaussian has an uncertainty of $\sqrt{2}\sigma_\phi$, as Gaussian convolutions result in a Gaussian with a variance the sum of the two composite variances. We therefore, for notation's sake, define a new term
 
 \begin{align}
 \begin{split}
-    \psi(\mathbf{r}) &= \psi(\mathbf{r}, \sigma_\psi) = \frac{1}{2\pi \sigma_\psi}\mathrm{exp}\left(-\frac{1}{2} \frac{\lvert\mathbf{r}\lvert^2}{\sigma_\psi^2}\right) \\&\equiv \phi(\mathbf{r}, \sqrt{2}\sigma_\psi) = \frac{1}{4\pi \sigma_\phi}\mathrm{exp}\left(-\frac{1}{4} \frac{\lvert\mathbf{r}\lvert^2}{\sigma_\phi^2}\right).
+    \psi(\mathbf{r}) &= \psi(\mathbf{r}, \sigma_\psi) = \frac{1}{2\pi \sigma_\psi^2}\mathrm{exp}\left(-\frac{1}{2} \frac{\lvert\mathbf{r}\lvert^2}{\sigma_\psi^2}\right) \\&\equiv \phi(\mathbf{r}, \sqrt{2}\sigma_\phi) = \frac{1}{4\pi \sigma_\phi^2}\mathrm{exp}\left(-\frac{1}{4} \frac{\lvert\mathbf{r}\lvert^2}{\sigma_\phi^2}\right).
 \end{split}
 \end{align}
-Only three of the resulting convolutions contain terms with $\Delta f$ or $\mathbf{\Delta d}$ in them -- for example, the first term $L\phi(\mathbf{r})$ multiplied by itself, after evaluating the convolution through the integral, becomes $-\frac{1}{2} L^2 \psi(\mathbf{0})$. The three terms which are multiplications of two different terms within the square brackets of equation \ref{eq:logL1} appear twice and thus cancel the factor of a half in the definition of the log-likelihood. Combining all terms, evaluating all convolutions, and dropping constant terms, we therefore have
+Only three of the resulting convolutions contain terms with $\Delta f$ or $\mathbf{\Delta d}$ in them -- for example, the first term $L\phi(\mathbf{r})$ multiplied by itself, after evaluating the convolution through the integral, becomes $-\frac{1}{2} L^2 \psi(\mathbf{0})$. The three terms which are multiplications of two different terms within the square brackets of equation \ref{eq:logL2} appear twice and thus cancel the factor of a half in the definition of the log-likelihood. Combining all terms, evaluating all convolutions, and dropping constant terms, we therefore have
 
 \begin{align}
 \begin{split}
@@ -140,7 +150,7 @@ Defining $\psi{'}(\mathbf{x}) \equiv \psi(\mathbf{x})/\psi(\mathbf{0})$, $\Delta
 \label{eq:dfderiv}
 \end{split}
 \end{align}
-In the limit that $\Delta d \ll 1$, $\psi{'}(\mathbf{\Delta d}) \to 1$ and $\psi{'}(\mathbf{d}_i + \mathbf{\Delta d}) \to \psi{'}(\mathbf{d}_i)$ and thus
+In the limit that $\lvert\mathbf{\Delta d}\lvert \ll 1$, $\psi{'}(\mathbf{\Delta d}) \to 1$ and $\psi{'}(\mathbf{d}_i + \mathbf{\Delta d}) \to \psi{'}(\mathbf{d}_i)$ and thus
 
 \begin{equation}
     \Delta f \simeq \sum\limits_if_i\psi{'}(\mathbf{d}_i) = \sum\limits_if_i\mathrm{exp}\left(-\frac{1}{4}\frac{\lvert\mathbf{d}_i\lvert^2}{\sigma_\psi^2}\right),
@@ -159,16 +169,99 @@ Rearranging and using the previous definition of $\psi{'}$ we get
 \label{eq:dxderiv}
 \end{split}
 \end{align}
-Again assuming $\Delta d \ll 1$ and thus $\psi{'}(\mathbf{\Delta d}) \to 1$, $x_i - \Delta x \to x_i$, and $\psi{'}(\mathbf{d}_i - \mathbf{\Delta d}) \to \psi{'}(\mathbf{d}_i)$, we have
+Again assuming $\lvert\mathbf{\Delta d}\lvert \ll 1$ and thus $\psi{'}(\mathbf{\Delta d}) \to 1$, $x_i - \Delta x \to x_i$, and $\psi{'}(\mathbf{d}_i - \mathbf{\Delta d}) \to \psi{'}(\mathbf{d}_i)$, we have
 \begin{equation}
     \Delta x \simeq \sum\limits_if_i\Delta x_i\,\psi{'}(\mathbf{d}_i) = \sum\limits_if_ix_i\mathrm{exp}\left(-\frac{1}{4}\frac{\lvert\mathbf{d}_i\lvert^2}{\sigma_\psi^2}\right).
+\label{eq:dxderivsmall}
 \end{equation}
 
-While these approximations are valid for small $f$, they are not applicable to cases of approximately equal-brightness contaminants; we therefore require an approximation for the perturbation of these bright objects in the sky background-limited case.
+While these approximations of position perturbaton are valid for small $f$, they are not applicable to cases of approximately equal-brightness contaminants; we therefore require an approximation for the perturbation of these bright objects in the sky background-limited case. The general case for the increase in model flux, equation \ref{eq:dfderiv}, \textit{can} be used, however, once these perturbation coordinates are computed. We therefore focus now on the positional effects.
 
-STUFF
+\subsubsection{Parameterising the background-dominated AUF perturbation}
+Unfortunately it is not possible to analytically solve for equation \ref{eq:dxderiv}. We therefore here lay out an attempt to parameterise the solution as accurately as possible, first splitting the composite solution into one of the vector sum of single-component perturbation solutions, cf. equation \ref{eq:dxderivsmall}. For a single perturber, the offset $\Delta x$, now a scalar parameter, is a function of two components: the perturber position $x$ (and $y$), also considered as a scalar here but with a sign that matches that of $\Delta x$; and relative flux $f$.
+
+The paramaterisation of $\Delta x$ takes two forms: first, at small relative fluxes, we keep the approximate form given by equation \ref{eq:dxderivsmall}; second, at larger relative fluxes, the perturbations are modelled as a composite of flux-weighted averages at small source offsets and a skew normal distribution at larger source offsets,
+\begin{equation}
+    \Delta x(x, y, f) =
+    \begin{cases}
+    f\,x\,\mathrm{exp}\left(-\frac{1}{4}\frac{x^2 + y^2}{\sigma_\psi^2}\right) & f < 0.15\ \mathrm{or}\ f > 0.9975 \\
+    \Omega(x, f) & f \geq 0.15\ \mathrm{and}\ f \leq 0.9975,
+    \end{cases}
+\label{eq:deltaxparam}
+\end{equation}
+where
+\begin{equation}
+    \Omega(x, f) = \Omega(x, f, \sigma, \mu, \alpha, T, r_c) =
+    \begin{cases}
+    x f/(1 + f) & x < r_c \\
+    2 f \frac{T}{\sigma}\lambda\left(\frac{x - \mu}{\sigma}\right)\Lambda\left(\alpha\frac{x - \mu}{\sigma}\right) & x > r_c,
+    \end{cases}
+\label{eq:omega}
+\end{equation}
+and $\lambda(x) = \frac{1}{\sqrt{2\pi}}\exp\left(-\frac{1}{2} x^2\right)$, $\Lambda(x) = \int\limits_{-\infty}^x\lambda(t)\,\mathrm{d}t = \frac{1}{2}\left[1 + \mathrm{erf}\left(\frac{x}{\sqrt{x}}\right)\right]$, $r_c$ is the critical offset at which perturbation stops being modelled as flux-weighted, and $\sigma$, $\mu$, $\alpha$, and $T$ are the scale, location, shape and scaling parameters of the skew normal, respectively. The skew normal distribution parameters and critical cutoff are themselves parameterised as $\sigma(f)$, etc., and fit as two polynomials (of 15th order; a tradeoff between accuracy and computation cost), split by the break in $\sigma$ as a function of relative flux. The parameterisation of skew normal parameters is given in Figure \ref{fig:skewparams}, and a comparison between empirical and parameterised perturbations is given in Figure \ref{fig:fitperturbs}. Note that extremely large relative fluxes give poorly constrained skew normal parameters and thus we treat what are essentially equal-brightness binary objects as being modelled as flux-weighted averages at all offsets (as shown in equation \ref{eq:deltaxparam} and Figure \ref{fig:skewparams}). This gives maximum relative perturbations from the empirical $\Delta x$ of $<8\%$ (for the smallest relative fluxes not fit by the approximate solution), tapering to maximal shifts of $<1\%$ for the brightest contaminants. In all cases the maximum \textit{absolute} deviation is less than $0.02\sigma_\phi$ -- that is, the offsets are always good to, at worst, of order a percent of a PSF sigma.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{{offset_params}.png}
+    \caption{Parameterisation of composite flux-weighted and skew normal model of single object perturbation, $\Delta x$. Individual least-squares minimisation parameters for skew normal, and critical cutoff for composite model change (cf. equation \ref{eq:omega}), are shown in solid lines with both 15th order polynomials overlaid in dash-dot lines. Polynomials do not fit $f > 0.9975$ as parameterisation is poor at these fluxes.}
+    \label{fig:skewparams}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{{perturb_comps}.png}
+    \caption{Comparison between empirical and parameterised perturbations, as a function of source offset and flux -- represented by the colorscale, in arbitrary scaling from $f = 0.15$ to $f = 0.99$. Empirical perturbations are shown in solid lines, with parameterisation shown as dashed lines.}
+    \label{fig:fitperturbs}
+\end{figure}
+
+To test the validity of the vector sum composite model at intermediate fluxes, we then ran simulations of 300,000 realisations of a central object plus an appropriate drawing of contaminants -- based on the TRILEGAL number densities in the Galactic plane at roughly $l = 130, b = 0$. The ``proper'' perturbation -- the composite fitting, equation \ref{eq:dxderiv} -- was compared to the vector sum approximation, for steps of \textit{WISE} magnitude $W1$ 11th through 17th. An example of the improvement the parameterisation makes over the flux-weighted centroid regime -- where this background-dominated assumption can be assumed to hold -- can be seen in Figure \ref{fig:bd_offset_comp}, for $W1\simeq15.5$. It can be seen that there is a much tighter distribution overall between the new vector sum parameterisation and the full perturbation calculation, as compared with the flux-weighted centroid previously used. Additionally, we can compare the $\Delta f$ computed using several algorithms, as seen in Figure \ref{fig:bd_flux_comp}. The full $\Delta f$, from equation \ref{eq:dfderiv}, as fit via least-squares minimisation centroids agrees reasonably well with both the vector sum background-dominated perturbation parameterisation and the flux-weighted centroid shifts -- neither offset, in Figure \ref{fig:bd_offset_comp}, was \textit{too} wrong. However, Figure \ref{fig:bd_flux_comp} shows how incorrect the naive aperture sum flux increase is as a metric for background-dominated PSF fit flux increases -- the reported flux can be wrong by as much as 50-100\% of the original central source flux, for heavily contaminated objects, such as those in \textit{WISE} at 15.5th magnitude. It is therefore crucial to understand the algorithms used to create photometric catalogues and correctly apply the appropriate modelling to ensure physically motivated reporting of any modelling of flux contamination due to blended objects, such as that performed by \citet{2018MNRAS.481.2148W}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{{bd_offset_comp}.png}
+    \caption{Comparison between the full background-dominated PSF fit centroid shift computation, cf. equation \ref{eq:dxderiv}, and the vector sum skew normal parameterisation (equation \ref{eq:deltaxparam}), shown in black, and the flux-weighted centroid algorithm previously used by \citet{2018MNRAS.481.2148W}, shown in red.}
+    \label{fig:bd_offset_comp}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{{bd_flux_comp}.png}
+    \caption{Comparison between the full background-dominated PSF fit flux increase computation and various other algorithms. The difference between the full PSF fit flux increase derived by equation \ref{eq:dfderiv} and the increase computed using the perturbations calculated using the approximation given in equation \ref{eq:deltaxparam} is shown in black; the background-dominated case PSF flux increase using the flux-weighted perturbation centroids is shown in red; and the naive aperture sum flux increase ($\sum_i f_i$) is shown in blue.}
+    \label{fig:bd_flux_comp}
+\end{figure}
+
+\subsection{Modelling the AUF at all signal-to-noise ratios}
+Now that we have a model for fitting the centroid perturbation shifts in the limit of background-dominated, approximately constant noise PSF fit objects, we can apply a further parameterisation to model the AUF at all signal-to-noise ratios (SNRs). To create a probability density function describing the likelihood that two objects, detected in two photometric catalogues, are detections of the same object when one catalogue is subject to crowding, one first needs to derive the likely systematic perturbations of the first object due to said crowding. To achieve this -- as described in more detail by \citet{2018MNRAS.481.2148W} -- simulate a PSF, drawing -- based on the density of sources as a function of magnitude fainter than the central object -- realisations of the perturbers within the bright object, and deriving the centroid shift of the object, caused by these blending objects. This is then repeated a large number of times to create a sample of systematic centroid perturbations and corresponding flux contamination levels for a source of given Galactic coordinates (affecting the overall density of sources and extinction reddening, etc.), local source density (to ``smooth out'' the simulated TRILEGAL source densities), and central object flux. This perturbation AUF component is then convolved with the \textit{statistical} AUF component, the original -- and often assumed only -- source of position uncertainty caused by noise in the detection image.
+
+\citet{2018MNRAS.481.2148W} previously used a flux-weighted centroid algorithm for computing the AUFs of sources, motivated primarily by relatively bright objects, $W1\simeq13$ or so. However, this model is clearly superceded by the physically motivated fitting algorithm laid out in Section \ref{sec:loglmax}; this improvement can be seen in Figure \ref{fig:wise_auf_17}, where the background-dominated PSF centroiding algorithm (dashed line) fits the \textit{Gaia}-\textit{WISE} cross-matches of $W1\simeq17$ much better than the flux-weighted centroiding (solid line). The exact opposite is true at $W1\simeq12$ in Figure \ref{fig:wise_auf_12}, where the flux-weighted centroid calculated AUF is now the better fit.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{{wise_auf_17}.png}
+    \caption{Model AUFs compared with \textit{Gaia}-\textit{WISE} cross-matches  of $W1\simeq17$ (shown as black errorbars). Solid black line is AUF as derived using the \citet{2018MNRAS.481.2148W} flux-weighted centroid calculation, and the dashed black line is the new, background-dominated PSF derived centroid shift laid out in Section \ref{sec:loglmax}. Red line is parameterisation of weighted average of two PDFs.}
+    \label{fig:wise_auf_17}
+\end{figure}
+
+We parameterise the ``hand-off'' between the two noise regimes -- star dominated and background sky dominated -- with a simple linear slope. At each \textit{WISE} magnitude, 11th through 17th, we fit the least-squares minimisation of the weighted average of the two AUFs to the data, as $y = H\, \mathrm{AUF}_\mathrm{fw} + (1 - H) \mathrm{AUF}_\mathrm{bd}$ for ``flux-weighted'' and ``background-dominated'' AUFs. We then parameterise $H$ as a function of magnitude as a linear slope, capped at $0 \leq H \leq 1$. The resulting composite AUFs are seen in Figures \ref{fig:wise_auf_17} and \ref{fig:wise_auf_12} as solid red lines, but also an ``intermediate'' SNR regime at $W1\simeq14.5$ in Figure \ref{fig:wise_auf_14.5}, where it can be seen that neither AUF can explain the data by itself, but a simple weighted average of the two explain the cross-matches with high accuracy.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{{wise_auf_12}.png}
+    \caption{Model AUFs compared with \textit{Gaia}-\textit{WISE} cross-matches of $W1\simeq12$ (shown as black errorbars). Solid black line is AUF as derived using the \citet{2018MNRAS.481.2148W} flux-weighted centroid calculation, and the dashed black line is the new, background-dominated PSF derived centroid shift laid out in Section \ref{sec:loglmax}. Red line is parameterisation of weighted average of two PDFs.}
+    \label{fig:wise_auf_12}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{{wise_auf_14.5}.png}
+    \caption{Model AUFs compared with \textit{Gaia}-\textit{WISE} cross-matches of $W1\simeq12$ (shown as black errorbars). Solid black line is AUF as derived using the \citet{2018MNRAS.481.2148W} flux-weighted centroid calculation, and the dashed black line is the new, background-dominated PSF derived centroid shift laid out in Section \ref{sec:loglmax}. Red line is parameterisation of weighted average of two PDFs.}
+    \label{fig:wise_auf_14.5}
+\end{figure}
+
+We initially explored the possibility that the mis-match between the physically motivated AUFs and the cross-matches was due to the combining of multiple ``groups'' of data into a single dataset. However, in all cases the \textit{WISE} data were drawn from a consistent SNR regime, whether measured by pure SNR, background flux counts, or star-to-background flux ratio. Thus, unable to explain the composite nature of the cross-match distributions as physically different groups of objects, the most likely explanation is simply that those sources at intermediate brightnesses, $W1\simeq14.5$ or thereabouts, are in a transition from star- to background-dominated noise; this hypothesis bears out under examination of the star-to-sky flux ratio, which is of order 10 at $W1=12$, of order 2-3 at $W1=14.5$, and less than 1 by $W1=17$.
 
 \section{Including the effects of noise in the simulating of perturbation AUF components}
+\label{sec:noise effects}
 While the improved model for fainter source perturbation modelling is important, a pragmatic consideration we must make when considering the cross-matching of LSST catalogues to external catalogues is that of dynamic range. LSST is expected to reach 5-sigma depths of 27th magnitude, which leads to a potential issue with Galactic source count simulations. Previously, \citet{2018MNRAS.481.2148W} considered the TRILEGAL \citep{Girardi2005} Galactic simulations for star counts; however, the dynamic range of these simulations -- at least, those publically available -- is 32nd magnitude. \citet{2018MNRAS.481.2148W} also recommended simulating faint perturbers up to 10 magnitudes fainter than the primary object, for source astrometric precision arguments. Sources sufficiently faint are not available through the TRILEGAL simulations, so another approach is needed. However, the previous PSF simulations do not take into account any noise in the images, which we now consider.
 
 \subsection{Noise effects on faint object astrometric perturbations}
@@ -188,13 +281,23 @@ Considering $f \equiv F_s/F_p$ we can divide both sides by $F_p$ to obtain
 As most photometric surveys are defined by their 5-sigma completeness limits, we need to focus on $\mathrm{SNR}_p \geq 5$. Also considering a swap from relative flux ratio to magnitude offset, $\Delta m = -2.5 \log_{10}(f)$, we can also select $B=0.05$ -- or sources at minimum a twentieth the noise of the primary -- as this gives $\Delta m = -2.5 \log_{10}(0.05/5) = 5$. Additionally, at $\mathrm{SNR}_p = 500$ we ``only'' need to consider sources down to $\Delta m = 10$, and thus this $B$ provides a reasonable range of faint perturbation flux limits as a function of primary flux.
 
 \subsection{Noise effects on faint object photometric contamination}
-While the above equation is sensible in its determination of the limit of a faint perturber on the astrometric quantities of a bright object, we must also verify the flux contamination derived is robust to these limits of flux ratio. Understandably, at high fluxes for the primary object, 
+While the above equation is sensible in its determination of the limit of a faint perturber on the astrometric quantities of a bright object, we must also verify the flux contamination derived is robust to these limits of flux ratio.
 
+
+\section{Extensions}
+While the above parameterisation of the magnitude offsets necessary for inclusion in the AUF model (Section \ref{sec:noise effects}) and the improved model for calculating centroid offsets for PSF fit sources in background-dominated noise regimes (Section \ref{sec:loglfit}) are vital for the correct modeling of the effects of blended sources on the astrometry and photometry of LSST sources, this does not represent an exhaustive modelling of all sources of uncertainty in the derived parameters.
+
+The main outstanding unknown at present is how to model the effects of \textit{deblending} of objects -- active deblending is where additional sources are included simultaneously in the least-squares minimisation of a PSF fit source. These additional sources are no longer included in the effects of the AUF -- where they would have perturbed by some $\Delta x$ they are themselves extracted together with the primary object so no longer do so -- but they also have more subtle effects not currently taken into account. Indeed, in the case of bright \textit{WISE} objects, we find that the cross-matches with \textit{Gaia} sources results in a larger average offset for sources which have had active deblending applied than those for which there is no attempt to deblend perturbers. As only of order 15\% of \textit{WISE} sources have active deblending applied to them, and this additional systematic offset from the more precise \textit{Gaia} objects is negligible by $W1\simeq14.5$, we ignore this effect at present.
+
+Additionally, we have shown that the aperture sum flux contamination calculation for background-dominated, PSF fit sources (cf. Figure \ref{fig:bd_flux_comp}) results in the belief that source photometry, as quoted in a photometric catalogue, is significantly fainter than it ought to be, as the $\Delta f$ can be wrong by a large fraction of the source flux. We therefore can turn to the log-likelihood derived $\Delta f$ for these faint sources; however, we do not know at present whether this flux brightening can hold for \textit{bright} sources that have had PSF photometry applied to them.
+
+\section{Conclusion}
+In this report we have laid out an updated algorithm for the description of background-dominated sources for which blended object perturbations need to be accounted for. This new AUF, when combined with a previous algorithm applicable to the case of bright objects, better describes the separations of \textit{Gaia} and \textit{WISE} matches in the Galactic plane than previous attempts alone. When combined with a more physically motivated faint source cutoff the new modelling should allow for much a more accurate understanding of the cross-matches of sources at the faint end of the LSST dynamic range, crucial as crowding becomes increasingly important at such depths.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \bibliographystyle{mnras}
-\bibliography{../../../../Dropbox/PostDoc_Exeter/LaTeX/postdoc_papers_jr2}
+\bibliography{/Volumes/TSFiles/PostDoc_Exeter/LaTeX/postdoc_papers_jr2.bib}
 
 
 
