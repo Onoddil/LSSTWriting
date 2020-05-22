@@ -61,7 +61,7 @@
 
 % Title of the paper, and the short title which is used in the headers.
 % Keep the title short and informative.
-\title[]{Report May 2020 – Improvements to the AUF: Photometric Considersations}
+\title[]{Report May 2020. Improvements to the AUF: Photometric Considersations}
 
 % The list of authors, and the short list which is used in the headers.
 % If you need two or more lines of authors, add an extra line using \newauthor
@@ -90,14 +90,140 @@ and Tim Naylor
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
+In the March report for WP deliverable 3.11.1, we discussed improvements to the description of the Astrometric Uncertainty Function (AUF) for deep, faint, background-dominated surveys and sources, crucial for ensuring that the majority of LSST objects are as accurately modelled as possible in any cross-matching process.
+However, when doing so, as mentioned in section 4, we only considered the \textit{astrometric} effects; we concluded that an extension to WP3.11.1 would require a model to ensure that the \textit{photometric} component of the Monte Carlo simulations used to model the effects of crowding were also as accurate as possible.
+This would then allow us to report robust statistical flux contaminations for the cross-matches reported, which would likely be of interest to some users of the resultant merged catalogue of objects.
 
+We report here these photometric considerations.
+Firstly, we needed to consider the $\Delta m$ limit down to which to model simulated blended objects within our Monte Carlo PSFs to ensure that we capture, in all realisations, all appropriate flux brightening within each object at the brightness of the central object.
+Additionally, we required further testing to understand how to handle the reporting of these flux brightenings for objects whose properties were derived with PSF-based least-squares fitting, but are not in the background-dominated regime.
+
+However, we stress here that this work is not quite finished, as we have prioritised WP Deliverable 3.11.2 (and 3.11.3; see the six month plan April-October 2020 for more details) due to begin May/June 2020 over finishing these minor aspects of WP deliverable 3.11.1.
+This report provides the qualitative conclusions that will round out WP deliverable 3.11.1, as per section 4 of the March report, but will require further follow up to smooth over a few loose threads and create the eventual implementation for the final deliverable of the project.
 
 \section{The Photometric Limit of the Perturbation AUF}
 \label{sec:photolimits}
-Stuff about the new $\Delta m$ constraint based on Poissonian 1\% likelihood of drawing of $N$ objects $\Delta m$ magnitudes below the bright central object
+The original algorithm for deriving the additional components of the AUF -- aside from the original, intrinsic, noise-based Gaussian component -- used by \citet{2018MNRAS.481.2148W} called for a $\Delta m = 10$ magnitude limit for the perturbation-specific aspect.
+In this case, this limit was a simple one, based roughly on perturbations using a flux-weighted centroid, being that of the largest ``small'' offset caused by this faint object.
+For $\Delta m = 10$ we have $f = 0.0001$ -- $f$ being the relative flux ratio between perturber and central source -- and flux-weighted perturbations at most of order 0.001", an order of magnitude below the centroiding precision of bright \textit{WISE} objects.
+
+However, as discussed in the March report for WP3.11.1, we can now use a magnitude-based $\Delta m$ cut, based on the \textit{individual} signal-to-noise ratio (SNR) of an object, providing a dynamic $\Delta m$ limit.
+As this calculation only took into account the effects on the astrometry of the bright, central object we additionally need to consider whether the $\Delta m$ limit would result in a complete evaluation of the flux contamination of the objects.
+For this, we can turn to the number of objects simulated within a given Monte Carlo realisation of the PSF.
+
+As described by \citet{2018MNRAS.481.2148W}, the simulations for creating the statistical distribution of perturbations of a bright source's position -- and contamination of its flux -- involve the drawing of objects and placing them randomly near to the primary source.
+We then assume that, on a statistical level, all of the flux that will affect the contamination level quoted has been simulated if we define our $\Delta m$ such that essentially all simulations contain at least one perturber.
+To compute this, we again assume our simulations are modelled as per \citet{2018MNRAS.481.2148W}, in which small magnitude offsets are stepped through for secondary perturbers.
+In each small bin $m_i$ to $m_i + \mathrm{d}m$ there is a given number density of objects (either a galaxy source rate or TRILEGAL [\citealp{Girardi2005}] Galaxy star count rate, e.g., cf. figure 5 of \citealp{2018MNRAS.481.2148W}), converted to an expected number of source within an area of the PSF.
+
+From this expectation count $\lambda_i$ -- for the $i$th bin -- a given source number is drawn from a Poissonian distribution.
+We can therefore compute the expected number of sources, and cumulative distribution function (CDF), for the total number of sources down to a given $\Delta m$, given by the convolution of each individual Poissonian distribution for each small magnitude bin.
+Using the notation $\sum_{i=1}^n X_i = Y$, where $X_i$ and $Y$ are $n$ independent random variables and the resultant convolution distribution respectively, we get
+\begin{equation}
+    \sum\limits_{i=1}^n\,\mathrm{Poisson}(\lambda_i) = \mathrm{Poisson}\left(\sum\limits_{i=1}^n\lambda_i\right) \equiv \mathrm{Poisson}(\lambda),
+\end{equation}
+where
+\begin{equation}
+\mathrm{Poisson}(\lambda) = P(X = k; \lambda) = \frac{\lambda^k \exp(-\lambda)}{k!}
+\end{equation}
+with $k$ the number of objects drawn.
+Thus the sum of $n$ values, drawn from Poissonian distributions is, effectively, itself a drawing from a Poissonian distribution with the expectation value the sum of each individual expectation values.
+
+We wish to calculate the $\Delta m$ to simulate down to -- or, now, the number of small magnitude bins we need to drawn from -- at which we get some small fraction of realisations with zero extra sources drawn.
+Now we can use a Poissonian distribution with its expectation value the sum of each individual expectation value, and draw the CDF for a single object,
+\begin{equation}
+    P(X \geq k; \lambda) = \frac{\Gamma(\lfloor k + 1 \rfloor, \lambda)}{\lfloor k \rfloor!} \equiv \exp(-\lambda) \sum_{i=0}^{\lfloor k \rfloor}\frac{\lambda^i}{i!},
+\end{equation}
+and thus our given probability, for at least a single object, is
+\begin{equation}
+    P(X \geq 1; \lambda) = \Gamma(2, \lambda) \equiv \exp(-\lambda) \left[1 + \lambda\right].
+\end{equation}
+
+We wish for $P(X \geq 1; \lambda) = y$, where $y$ is some small fraction, here given as $y = 0.01$ -- a 1\% chance of realising a PSF containing no objects.
+Thus, for a given source density of potential contaminating sources, we can compute the \textit{photometric} contamination limit, shown, along with the original astrometric limit, in Figure \ref{fig:photastrodm}.
+This is simply the sum of all individual magnitude bin $\lambda_i$ values (the number density of objects times the bin width times the PSF area) below the $m$ of the bright, central object until $P(X \geq 1; \lambda) \leq 0.01$.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{{wise_dm_ap}.pdf}
+    \caption{Magnitude offsets for considering blended objects to, for both astrometric and photometric considerations, for \textit{WISE} sources at $l = 130,\ b = 0$.
+             The $\Delta m$ for astrometric completeness -- the limit at which the secondary object is 5\% the noise of the primary object -- is shown in solid black.
+             The photometric magnitude offset -- the magnitude offset down to which sources must be drawn for 99\% of realisations to contain at least one source -- is shown in dashed black.
+             The red line shows the maximum of the two; and the dash-dot black line shows $\Delta m = 5$, important for LSST using TRILEGAL simulations.}
+    \label{fig:photastrodm}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{{w1_9_flux_cdf}.png}
+    \caption{Cumulative distributions of derived flux contaminations from Monte Carlo simulations of blended sources within PSFs, assuming a \textit{WISE} source of $W1 = 9$.
+             Various $\Delta m$ limits are shown: the previously computed astrometric limit (black line), 15 (red line), the photometric limit (blue line), and 10 (green line).
+             Additionally, the flux contaminations from a simple flux-weighted centroid (solid lines) and the log-likelihood maximisation method (dashed lines) are shown.
+             Vertical lines show the lower limit on $f$, based on $f = -2.5 \log{\Delta m}$.
+             CDFs include sources for which zero objects were realised, which is why some CDFs do not begin at zero (i.e., if 40\% of objects are ``pure'', the CDF would start at 0.4).}
+    \label{fig:w1_9_flux_cdf}
+\end{figure}
+
+The importance of this calculation is highlighted in Figures \ref{fig:w1_9_flux_cdf} and \ref{fig:w1_15_flux_cdf}.
+These figures show the cumulative distribution of the derived flux contaminations of a sample of \textit{WISE} objects at two magnitudes -- one faint, one bright.
+Plotted are the $\Delta m = 10$ previous limit, for reference, along with a $\Delta m = 15$ case, representing a ``complete'' limit at all brightnesses.
+Also plotted are the astrometric $\Delta m$ derived previously, and the new photometric limit.
+
+It can be seen in Figure \ref{fig:w1_9_flux_cdf} that neither the astrometric limit, nor the original $\Delta m$, capture the tail in the distribution of fluxes from sources of $W1 = 9$.
+These objects are bright, and thus not subject to significant crowding at relative flux ratios that contribute to the overall quoted flux; however, the astrometric limit causes a third of cases to be quoted as having zero additional flux.
+While the individual sources are at $\Delta f \simeq = 0.001$, we can ensure that our distribution of flux brightenings is robust across all statistics by increasing $\Delta m$ to 10 or even 14, with little computational cost.
+This then ensures we track our $\Delta f$ flux brightenings down to $10^{-5}$, providing the full statistical distribution of potential contamination levels, which could be of use.
+
+Figure \ref{fig:w1_15_flux_cdf} shows a different story, however.
+At these fainter magnitudes, the photometric limit -- defined as the point at which we draw at least one source no more than 1\% of the time -- is achieved much quicker, as these sources are much more subject to crowding.
+Here, the astrometric limit begins to dominate, and we can stop worrying about the photometry, as it can be assumed to be complete at the astrometric limit.
+Thus, as Figure \ref{fig:photastrodm} shows, the photometric limit matters more at bright magnitudes than the astrometric limit, as shown by the handoff between the two at $W1 \simeq 14.5$.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{{w1_15_flux_cdf}.png}
+    \caption{Cumulative distributions of derived flux contaminations from Monte Carlo simulations of blended sources within PSFs, assuming a \textit{WISE} source of $W1 = 15$.
+             Colours and line styles are the same as in Figure \ref{fig:w1_9_flux_cdf}.}
+    \label{fig:w1_15_flux_cdf}
+\end{figure}
+
+We can therefore now derive a $\Delta m$ which ensures that both the astrometric perturbations and photometric contamination of simulated objects are as accurate as possible.
+This then allows for robust secondary parameters, such as flux brightening of individual sources subject to crowding in a given photometric catalogue, to be quoted along with likely cross-matches to secondary catalogues.
+
+TODO: Add a bit in here about changing the limit, like with the astrometric $B=0.05$ bit; we can just tweak the 1\% threshold if $\Delta m > 5$ in LSST.
 
 \section{Flux Contamination Computations at all Signal-to-Noise Ratios}
-Stuff about using PSF fitting algorithms to derive astrometric perturbations and photometric contaminations for bright objects. Assume that the flux-weighted centroid applies at high SNRs (where noise considersations reduce the PSF to a single ``important'' point), and the Gaussian-convolution method applies at faint magnitudes where noise is constant; need to know what to do for $\Delta f$ at high SNRs, however. Also, point out that if the fitting algorithm does not use uncertainty information then log-likelihood method \textit{should} apply at all SNRs.
+% Stuff about using PSF fitting algorithms to derive astrometric perturbations and photometric contaminations for bright objects. Assume that the flux-weighted centroid applies at high SNRs (where noise considersations reduce the PSF to a single ``important'' point), and the Gaussian-convolution method applies at faint magnitudes where noise is constant; need to know what to do for $\Delta f$ at high SNRs, however. Also, point out that if the fitting algorithm does not use uncertainty information then log-likelihood method \textit{should} apply at all SNRs.
+Previously, we derived a new method for computing the astrometric perturbations of sources in the background-dominated, PSF-fit regime, applicable to faint LSST objects.
+This new algorithm was combined with the previously used flux-weighted centroids in a magnitude-based weighted average scheme (see figure 7, March report, e.g.).
+However, this left -- as detailed in section 4 of the March report -- an outstanding question of how to handle PSF-fit sources at bright magnitudes.
+We detail here a test into this question, using simulated test image cutouts with realistic \textit{WISE} counts and noise.
+
+For a series of \textit{W1} magnitudes, we create small representative images of a single PSF, and add extra sources, representing simulated perturbers.
+The PSF is assumed to be a Gaussian, integrated over a pixel (as opposed to the full \textit{WISE} PSF with its larger wings), with image cutouts being 13x13 pixels (roughly two 3$\sigma_\phi$ radii, to catch the entirety of a perturber placed at its maximum offset).
+The Gaussian PSF used is a \textsc{Photutils} \textsc{IntegratedGaussianPRF}, fit via \textsc{Astropy}'s \textsc{LevMarLSQFitter}.
+We calculate the ``flux,'' or, more specifically, the electron counts, of an object by $N = g 10^{-(m - m_0)/2.5}$, where $m_0 = 20.5$ is the instrumental zero point of the $W1$ filter , and $g = 3.2 e^-/\mathrm{DN}$ is the gain of the system.
+The background is chosen to be representative of the same region simulated previously -- $l = 130,\ b = 0$ -- as the average of the quoted DNs of \textit{WISE} objects in the region, $B = 23$ (multiplied by gain).
+We also add a read noise of $3.1DN$.
+The main source is randomly placed within the central pixel, to simulate various pixel phases, and then realisations of the given number density of objects, from the TRILEGAL simulation used previously, are drawn and placed.
+Finally, noise is simply the Poissonian drawing of each pixel with expectation value the respective electron counts of each pixel, and the gain, background, and read noise are removed from the image again.
+
+The resulting composite, blended object is then fit with a single PSF, from random starting position and flux; the build up of 70000 realisations is then flipped into a probability density function (PDF) of perturbations and flux contaminations.
+We also simulate just the central object, with zero contaminants, and fit the resulting distribution of recorded offsets -- in both position and flux -- to derive statistical, ``pure'' Gaussian uncertainties.
+We then analysed the resultant distribution of perturbed source positional offsets and flux brightenings.
+
+The astrometric uncertainty functions (AUFs) follow a very similar shape to those seen in the \textit{Gaia}-\textit{WISE} cross-matches used in the March report and \citet{2018MNRAS.481.2148W}.
+The AUFs at bright magnitudes roughly follow the convolution of the intrinsic Gaussian, with uncertainty that of the ``pure'' trial position offset distribution, and the flux-weighted centroid perturbation AUF.
+At decreasing fluxes, the AUFs pass through a regime of middling $H$ factors -- the weighted average between the flux-weighted AUF and the log-likelihood perturbation AUF described in the March report -- to $H\to0$ at very faint magnitudes.
+
+This mirrors the fits seen in the larger tests done previously, matching to the data-driven cross-match \textit{WISE} AUF, albeit with the caveat that $H$ does not tend to one, as it does with the full \textit{Gaia}-\textit{WISE} cross-match AUF fits.
+We can roughly fit a linear slope to the $H$-weighting between the two AUFs as a function of magnitude, however, so ascribe the $W1$ offset (i.e., the difference in $W1$ where $H=0.5$, e.g.) to a missing systematic noise or uncertainty in our tests.
+For example, we always fit in our 7x7 pixel box for a single PSF, unlike the larger \textit{WISE} pipeline.
+We also do not convert pixel units to sky coordinates at all, doing a naive pixel scale multiplication to convert from a pixel offset to an offset in arcseconds; we therefore do not introduce any uncertainty in things like plate solutions, and have no dominant systematic uncertainties at high fluxes.
+
+% can't compare simulation astrometrically directly, since we don't have plate solution uncertainties -- which add systematic uncertainties -- although a hacky fix systematic uncertainty vs WISE quoted astrometry gives qualitatively similar results to proper data, although it should since we're now using the real data twice
+% can, however, look at the photometry for which we should be including basically all information -- read noise, poisson shot noise, flat field uncertainty, and PSF uncertainty (using the actual WISE PSF now)
+% this also gives good qualitative agreement (analysis of SNR and quoted astrometric uncertainty show slight offset but overall slopes of values look good and fit reasonably well with data) with the previously derived H(mag) for the astrometry, so we can probably just use the astrometric H(mag), plus a fudge factor scaling...
 
 \section{Conclusion}
 
