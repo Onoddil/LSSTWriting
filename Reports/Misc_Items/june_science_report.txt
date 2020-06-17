@@ -1,0 +1,28 @@
+June 2020 science progress report:
+
+As per WP deliverable 3.11.1, we were tasked with the creation of a model for describing the contamination of sources at LSST depths to facilitate the cross-matching of catalogues, including the effects of blending from unresolved objects.
+To achieve this goal, we needed to update the limit down to which we should consider faint perturbers in simulations.
+During this process we identified two additional goals: updating the model used to calculate perturbations of objects by faint blended sources, and the model used to describe the photometric contamination of sources by any faint perturbing objects.
+
+All three goals, as of June 2020, can be considered at least qualitatively complete; that is, we have tested each aspect against a limited trial sample of WISE data, and believe we understand how to extend the findings to both LSST and the wider secondary catalogues as a whole.
+
+Simulation limit:
+For Galactic matches, we use simulated star counts to model the effective levels of crowding a given source will be subject to, to calculate statistical samplings of position perturbation and photometric contamination.
+The selected model, TRILEGAL, has a limit of 32nd magnitude in its publicly available dataset, however, which posed a challenge as LSST will reach down as far as 27th magnitude.
+We have created a more robust framework for calculating the computationally reasonable and statistically complete flux ratios down to which to consider these secondary blended objects, which requires sources <5 magnitudes below the primary object at low signal-to-noise ratios (SNRs).
+These consider the relative brightnesses of blended objects for both astrometric purposes -- comparing the relative flux of the perturber to the noise of the primary -- and photometric reasons -- ensuring the quoted distributions of flux contamination are complete.
+This goal can be considered both qualitatively and quantitatively complete; this assumption should hold across all catalogues and sky coordinates, and is sufficiently simple to scale to all-sky cross-matches.
+
+Perturbation model:
+The previous model applicable to the creation of a model describing the statistical perturbation of a source by blended objects used a relatively simple model, assuming that any centroid perturbations were caused by flux-weighted averages of the central source and any blended objects.
+This, however, is not the most robust model, so we updated the algorithm to include an additional model for the case of faint, background-limited sources whose position and flux were derived from PSF photometry.
+The flux-weighted centroid algorithm is still applicable to aperture photometry; additionally, it still fits bright objects with high accuracy, and we therefore fit a piece-meal weighted-average model between the flux-weighted and background-dominated regimes to model the intermediate regime for PSF-fit objects.
+This goal is primarily qualitatively complete: the two algorithms are in and of themselves complete, but the weighted-average fitting as a function of magnitude (or sky brightness, SNR, etc.) may require some fine-tuning across the sky -- or the establishing of a more robust, sky-independent parameter -- and will definitely require individual modelling for each catalogue.
+
+Photometric contamination:
+In conjunction with the naive flux-weighted centroid, previous algorithms for reporting the flux contamination of sources just assumed that the contamination was the sum of all perturbing objects' flux, again the aperture photometry case.
+In the course of investigating the previous goal, we realised this assumption does not hold for a significant fraction of the WISE catalogue as well.
+We have therefore updated this model to better reflect this parameter in a more analagous fashion, comparable to the astrometric parameter.
+This new reported parameter is therefore updated to be a piece-meal weighted-average fit of the "flux-weighted centroid" contamination case -- where aperture photometry effectively holds, and the previous sum is valid -- and the "background-dominated" case -- where the new algorithm is used to compute the additional flux of the composite object.
+We also extend this, as was not done in previous attempts, to include the photometric uncertainty, to be more directly comparable, and intend to investigate the most optimum reporting of this parameter given its full probabilistic description.
+This goal can only be considered qualitatively complete: not only will this aspect require the fine-tuning that the perturbation model does, we currently only understand this model in broad strokes, and will require some further experiments to fully understand whether this model is directly equivalent to the perturbation aspect.
