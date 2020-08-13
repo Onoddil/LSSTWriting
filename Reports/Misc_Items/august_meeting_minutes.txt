@@ -1,0 +1,15 @@
+August Meeting
+Date: 12/8/20
+Attendees: Tim Naylor & Tom Wilson
+
+Tim to finalise response to review of D3.11.1.
+Tim to contact Bob to ask about contribution in kind, with regards to the review and in response to the in kind contribution workshop at the Project and Community Workshop.
+
+Tom to contact various LSST people on the community forum re: algorithms etc. and observing strategies with updated information obtained at the PCW.
+
+Discussion of Nigel Hambly's response to issues regarding proper motion, reference frames, and solar reflex motion. Obvious solution is to ensure everything is on Gaia reference frame and correct proper motions properly; however, Nigel agrees that a first naive match to zero out any bulk, solar reflex motion might work but we've found several issues with that straight off the bat.
+-- tests to try to quantify this differential effect with distributions of proper motions in Gaia as a function of magnitude.
+-- need to follow up with LSST people to ensure that they're in Gaia/ICRF frame, whether they're proper motion correcting, and what magnitude range they will use to solve the solution.
+-- overall need to solve this problem at least in a slightly non-elegant, non-fully consistent way for ANY cross-match where neither dataset has proper motions, so to some level will have to figure out the least worst solution.
+
+Suggest to LSST people to look at places where solar reflex motion will be worse (plus a zero-effect place of similar standing if possible) for cross-match comparisons -- will run reference frame solutions through the motions too

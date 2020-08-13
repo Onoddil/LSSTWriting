@@ -1,0 +1,98 @@
+July Monthly Report
+===================
+
+DATE: 22/Jul/2020
+
+Attendees:
+Tim Naylor (Exeter) - WP lead
+Terry Sloan (Edinburgh) - LUSC PM
+Tom Wilson (Exeter)
+
+Completed Actions:
+
+- Review the progress and planning (kanbans if applicable)
+-- D3.11.1 [DONE]
+	Reviews for D3.11.1 were completed by the assigned reviewers, and given back to WP3.11 to respond to.
+	Tim to update reports written for D3.11.1 in line with feedback from reviewers and draft response.
+
+-- planning [DONE]
+	DAC-DEV planning meetings continue for progress towards D3.11.3.1, with previous meeting mostly concluding
+	API finalisation on the DAC side of things.
+
+	D3.11.3 broken into smaller milestones on kanban board.
+
+-- Project Assurance Report [DONE]
+	Time completed report by deadline, and included update on WP progress and impacts Covid-19 has had on this WP.
+
+
+- Covid-19 impact concerns raised [DONE]
+	Terry raised concerns with Bob and George.
+
+
+- Change Requests [DONE/DEPRECATED]
+	Change request for timeline of D3.11.2 (as per six month plan, Apr-Oct 2020) and its merging into D3.11.3 is no
+	longer necessary. Instead, we plan to use D3.11.3.2.A (see kanban board) as the deliverable for D3.11.2 on the
+	same timescale.
+
+Actions Arising:
+- Tim to respond to D3.11.1 reviews
+- Formally update D3.11.2 deliverable as being D3.11.3.2.A
+
+=============================
+
+DAC-DEV planning (D3.11.3.1, kanban board) mostly complete, with each side now having an understanding of the
+requirements of the other. George Beckett and Mike Read (WP2.5) are in frequent contact with WP3.11, and Mike is
+beginning tests of database queries and "skinny table" creation as per the WP3.11 API provided. These tests are
+focussing on the Gaia and WISE catalogues, as our preliminary test case for cross-matching. WP2.5 also explored
+whether they could provide some ancillary file creation for WP3.11 surrounding simple astrometric calculations -- a
+nearest neighbour cross-match between catalogues at 10s of arcsecond separations, and an internal catalogue source
+density calculation on arcminute length scales. Ultimately not being able to provide both we concluded that these
+would remain in the WP3.11 remit to avoid confusion.
+
+
+D3.11.2 -- the second deliverable for WP3.11 -- is currently a "demonstration software for one example catalogue",
+set for PM17 (30/Nov/20). This timeline was set during the proposal phase, when it was assumed that specific code
+would be written to cross-match two specific photometric catalogues (with a further three months to
+generalise the codebase in D3.11.3). However we quickly realised that we could skip D3.11.2 if the APIs for interacting
+with external catalogues (the DAC side of the DAC-DEV interactions, and D3.11.3.1) were quickly organised. We then
+established during early DAC-DEV meetings that this would be easy to achieve (if the specifics weren't quite
+sorted), and concluded that indeed D3.11.2 was unnecessary. Thus our current six month plan detailed the "skipping" of
+this stage, for which we planned to change the WP outline accordingly.
+
+However, with the beginning of code development it has become clear that a much better plan would be to use the UKDAC1
+-- set for October -- as a "data challenge" for a start-to-finish run of the code. As detailed below, the first
+intermediate stage of the WP code development is a "simple probability-based cross-match", under reasonably simple
+assumptions. While not all of the full code will be in place, the full workflow will be set up, and we can simply
+replace the "demonstration" in D3.11.2 with this data challenge.
+
+Thus a minor change from the layout of the six month plan is: D3.11.2 should now be tied to (and D3.11.2.1 replaced
+with) D3.11.3.2.A as the deliverable, essentially removing D3.11.2 as an intermediate goal in the WP3.11 timeline.
+This has the unintended consequence of "orphaning" D3.11.2.2 (as it is assigned in the six month plan), so it has been
+updated to be D3.11.1.3, placing it more sensibly with D3.11.1.2, as the peer-reviewed journal equivalent of the
+D3.11.1 deliverable report.
+
+
+The kanban board itself has also been more fully laid out with smaller intermediate stages for each task, which are
+given for more context, including dependencies and external work package links, below. The "D3.11." has been stripped
+from the beginning of all cards for legibility.
+D3.11 kanban:
+1: model for contamination at LSST depths [DONE/IN REVIEW]
+	1.1: develop model for crowding [DONE]
+	1.2: report on model for crowding [DONE/IN REVIEW]
+	1.3: paper describing updated cross-match algorithm and give updated cross-matches for select
+		 catalogues [STRETCH, TO DO, REQUIRES 1.2/3.4.A; GIVEN IN SIX MONTH PLAN AS 2.2]
+2: demonstration software for one example catalogue [DEPRECATED, NOW USING 3.2.A AS DELIVERABLE]
+	2.1: code for example catalogue cross-match [DEPRECATED]
+3: DAC integrated software for one example catalogue [IN PROGRESS]
+	3.1: Finalise API, hardware structure, and data model [IN PROGRESS, MOSTLY DONE, INTERACTS WITH WP2.5]
+	3.2: Create cross-match code incorporating API [IN PROGRESS]
+		3.2.A: simple probability-based cross-match code [IN PROGRESS]
+		3.2.B: extend AUF treatment of cross-match code to systematic components [TO DO, REQUIRES 3.2.A]
+		3.2.C: include photometric likelihood in cross-match probability [TO DO, REQUIRES 3.2.A]
+		3.2.D: documentation for codebase [TO DO, REQUIRES 3.2.A-C]
+	3.3: scalability tests for DAC cross-match code, ensuring LSST compatibility [TO DO, REQUIRES 3.2.A-C]
+	3.4: deploy code on DAC hardware [TO DO, REQUIRES 3.2.A-C]
+		3.4.A: run initial test full-scale cross-match [TO DO, REQUIRES 3.3/3.4]
+4: Final catalogue collection available at DAC [TO DO]
+	4.1: run cross-matches on DAC [TO DO, REQUIRES 3.4, INTERACTS WITH WP3.5]
+		4.1.A: develop list of cross-matches to run [TO DO, INTERACTS WITH WP3.5]
