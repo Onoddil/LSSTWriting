@@ -1,0 +1,25 @@
+Raphael Shirley, Carlos Gonzalez Fernandez, Leigh Smith, Tim Naylor, and Tom Wilson
+
+5/1/21, 11am
+
+- Solar reflex motion
+Discussion of effect, how to handle if reference frame has PMs and if actual data have PMs
+HSC and pipeline, at what point does solar reflex motion affect? First astrometric solution or final merged catalogue okay?
+VISTA+LSST at 10-year baseline, so forced photometry needs to be at different position than assumed one -- up to 0.1 arcsecond offset
+What tests can be done? VISTA+single-epoch LSST affected
+What fraction of VISTA sources have no gaia counterpart? A lot, apparently, 90% of plane K-band sources; maybe 10% of out of plane
+
+VVV might be ok, VHS not? Many epochs -> solve for proper motions; talk to Leigh for proper motions -- catalogues include eDR3 time-wound Gaia source reference frame
+
+Next steps for us a HSC test -- agree a region to test in common with WP3.5; they run SSDS and XMM -- WP3.5 to name sky coordinates and point to the data
+
+prototype HSC almost ready -- talk to Raphael to get access
+reference frame change? DR2 vs eDR3? HSC only down to -30deg -- uses Gaia (DR1?)-PS1 cross-match
+
+
+Actions:
+Raphael to check reference frame of HSC
+Raphael to send prototype HSC: ~10s of square degrees (maybe via DAC)
+Tom to check quoted astrometric uncertainties of catalogue, to compare with other systematic offsets like reflex motion
+Tom to check models for solar reflex motion, to establish if they solve the issue
+

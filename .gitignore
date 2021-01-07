@@ -8,5 +8,8 @@
 */*/*fls
 */*/*log
 */*/*out
+**lof
+**lot
+**toc
 */*/*synctex.gz
 **PhaseBReportTemplate**

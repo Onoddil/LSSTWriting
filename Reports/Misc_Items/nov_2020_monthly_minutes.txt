@@ -1,0 +1,17 @@
+November Monthly Minutes
+
+Attendess: Tim Naylor and Tom Wilson
+
+
+- Discussions of extensions to D3.11.2, with looming possibility of not meeting end-of-November deadline.
+  - Code development going well, just slower than the timeline permits. Confident for an early 2021 finish at the latest, as software is entering the final stage of algorithmic implementation for D3.11.2.
+
+- Continued back-and-forth about the issues surrounding solar reflex motion and proper motions, and their impacts on the AUFs of high-precision LSST data.
+  - Relates to ongoing attempts to link with WP3.5, as this issue likely impacts their work as well, and either they can assist us in solving the problem or we can inform them of the underlying issue at high precision.
+  - More generally, proper motions with LSST will be significantly affected by the same contamination from blended sources that positions are modelled as suffering; briefly touched upon possibility of modelling these second-order effects in the future.
+
+- Brief conversation about funding extensions, both COVID-delay related or otherwise.
+
+- Chat re: DAC-DEV "Interface Documentation" as it begins initial discussions with the DAC team.
+
+- Conversation about best conferences/meetings to present WP3.11 work.

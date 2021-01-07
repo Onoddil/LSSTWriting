@@ -1,0 +1,18 @@
+December Minutes:
+
+Attendees: Tim Naylor, Tom Wilson, Terry Sloan
+
+
+- Solar reflex motion discussion, with regards to planning of WP3.5 meeting -- PAN-STARRS calibration paper a useful reference for consideration
+	- unknown proper motions, even without reflex motion, will be a problem for most non-Gaia sources
+	- discussion of tests with Gaia proper motions to analyse the level to which this effect will matter at the faint end of a catalogue; confounded by uncertainties (negligible for Gaia probably) and ensemble-average blurring of distributions
+		- need to examine as a function of distance as well as magnitude
+		- need to examine two-dimensional proper motion offsets for Gaia
+		- get EDR3
+
+- Planning meeting with Terry (see planning notes for 16/12/20)
+	- No real problems to discuss, just follow up from the team meeting on the 15th.
+
+- Brief conversation of getting extra Gaia-WISE test up and running on server hardware
+
+- Prioritise finalisation of D3.11.2 over solar reflex motion tests, to allow for reviews to go ahead on time.
