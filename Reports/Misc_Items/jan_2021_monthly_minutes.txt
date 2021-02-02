@@ -1,0 +1,25 @@
+January 2021 Minutes
+
+Tim Naylor & Tom Wilson
+
+- Funding extensions
+	working them out with finance
+
+- Fellowship applications
+	check previous feedback for improvements/focus, look for deadlines of future applications
+
+- Solar reflex motion and/or statistical proper motions
+	have simple model for a given sky coordinate/distance to derive overall PMs, seems to be working okay
+	should fold in both the solar reflex motion and unknown disk/halo orbital velocities (+dispersion)
+	need to add last improvements to model, then test other parts of the galaxy
+	will write up derivation and preliminary analysis once finalised
+
+- D3.11.2 report
+	sent off and awaiting reviewer comments
+
+- DAC deadlines
+	Milestone for integrating code onto DAC needs Tom setting up as user on IRIS
+	Waiting for DAC-DEV meeting on the 22th to get a sense of timelines for data challenge
+
+- D3.11.3
+	Can now continue with code development, doing either D3.11.3.2.B or D3.11.3.2.C next.
