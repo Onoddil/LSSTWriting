@@ -1,0 +1,18 @@
+Monthly Minutes, February 2021
+
+Tim Naylor & Tom Wilson
+
+
+Funding Extension:
+Waiting for Exeter to send Tom a contract with the new dates
+
+D3.11.3:
+Code fine, just finishing up tests. Either on schedule or a month ahead, depending on the confusion of the month lead time on report submission.
+Then it's original algorithm's perturbation AUF code, with extension to D3.11.1 new algorithms afterwards.
+
+Proper Motions Report:
+Tim gave comments on writeup, needs working once finished
+Issues with whatever potential errors are present need fixing to polish the report
+Normalisation might need looking in plots
+Distances/parallaxes might be an issue -- not Bailer-Jones distance errors, but parallax bias
+	Can potentially use Bailer-Jones distances as inverse parallaxes (actually Bailer-Jones distances ARE similar to Lutz-Kelker bias distances, if those biases are viewed as a prior) to compare to TRILEGAL, to check if distributions compare better in parallax, to check if TRILEGAL is drawing distributions of sources right
