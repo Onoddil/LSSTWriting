@@ -7,6 +7,7 @@
 \usepackage[titletoc,title]{appendix}
 \usepackage[pdftex,dvipsnames,table]{xcolor}
 \usepackage[pdftex,colorlinks=true]{hyperref}
+\usepackage{pdfpages}
 
 % page layout
 \textheight=25.5cm
@@ -102,9 +103,9 @@ Document Number & LUSC-B-11
 \begin{tabular}{|>{\bfseries}p{4.5cm}|p{11.5cm}|}
 \hline
 Submission date & 7/Jan/2021 \\\hline
-Version & 1.0 \\\hline
+Version & 2.0 \\\hline
 Status  & Review \\\hline
-\parbox{4cm}{Author(s) inc. institutional affiliation} & Tom J. Wilson (Exeter) \\ & Tim Naylor (Exeter) \\\hline
+\parbox{4cm}{Author(s) inc. institutional affiliation} & Tom J. Wilson (Exeter) \\ & Tim Naylor (Exeter) \\ & George Beckett (Edinburgh) \\ & Mike Read (Edinburgh) \\\hline
 Reviewer(s) & \parbox{11cm}{\raggedright Bob Mann (UEDIN),\linebreak Raphael Shirley (SOTON)}\\\hline
 \end{tabular}\\[2ex]
 \end{table}
@@ -135,7 +136,7 @@ Restricted to project\\\hline
 \hline
 \textbf{Version} & \textbf{Date} & \parbox{6.5cm}{\textbf{Comments, Changes, Status}} & \parbox{4.5cm}{\textbf{Authors, Contributors, Reviewers}}\\\hline
 1.0  & \parbox{2.5cm}{07/01/21} & \parbox{6.5cm}{First draft for review} & \parbox{4.5cm}{Tom J. Wilson}\\\hline
- & & & \\\hline
+2.0  & \parbox{2.5cm}{22/02/21} & \parbox{6.5cm}{Update with reviewer comments} & \parbox{4.5cm}{Tom J. Wilson}\\\hline
  & & & \\\hline
  & & & \\\hline
  & & & \\\hline
@@ -180,6 +181,7 @@ These matches will then be hosted on the UKDAC, accessible to users.
 Thus, after we had established it was possible to overcome or sidestep a few implementation challenges (see the D3.11.1 report for more details), we began the establishment of the codebase core, on to which the more advanced, and WP-focused, algorithms could be added.
 
 \subsection{Deliverable Name}
+\label{sec:deliverable_name}
 The formal deliverable for D3.11.2 is titled "Demonstration Software for One Example Catalogue".
 This is because, during the proposal phase for this WP, it was envisaged that demonstration code would be written to specifically match an example catalogue pair, the code then moved to run on the DAC and subsequently generalised to allow for any catalogue combinations in D3.11.3.
 In practice we thought it would save time to go directly to writing the software for the DAC, skipping the demonstration software.
@@ -197,10 +199,57 @@ However, these assumptions hold for a large number of previous generation photom
 \section{Deliverables}
 The main deliverables for this work, being software development, are available online.
 As per the Project Management Plan, software development should be maintained in a version control repository.
-The main codebase is therefore located at \href{https://github.com/Onoddil/macauff}{https://github.com/Onoddil/macauff}.
+The main codebase is therefore located at \href{https://github.com/Onoddil/macauff/tree/7891efc9e5edc30febb2d3bcfdb14e97252493d0}{https://github.com/Onoddil/macauff}.
 It features a full test suite for validation, as well as functionality to generate test data to input into the cross-match algorithm for end-to-end verification.
+The folder structure is as follows:
+\begin{itemize}
+	\item Top-level files
+	\begin{itemize}
+		\item CHANGES.rst: changelog file, itemising the updates to the codebase.
+		\item LICENSE and README.md: details of licensing of codebase, and a top-level overview description of the software.
+		\item MANIFEST.in, pyproject.toml, and setup.cfg: minor files that aid with the setup and installation of the Python package.
+		\item python-package.yaml: within the \texttt{.github/workflow} folder, this details the \texttt{GitHub} virtual environment setup and the running of the test suite.
+		\item setup.py: main installation file for the Python package, which describes the various dependencies for installing the package, and controls the compiling of \texttt{fortran} code.
+		\item tox.ini: configuration file describing setup of the \texttt{tox} environment for test purposes.
+	\end{itemize}
+	\item Documentation files, \texttt{docs/}
+	\begin{itemize}
+		\item conf.py: configuration file, for Python automated creation of documentation.
+		\item *.rst: files containing the raw text that makes up the documentation of the codebase.
+	\end{itemize}
+	\item Code files, \texttt{macauff/}
+	\begin{itemize}
+		\item \_\_init\_\_.py: File used during the installation process, indicating which files and functions should be importable.
+		\item counterpart\_pairing*: Python and Fortran code (\texttt{.py} and \texttt{\_fortran.f90} respectively) to run the cross-match assignment functionality and calculate cross-match probabilities.
+		\item group\_sources*: Python and Fortran code used in the generation of ``islands'' of potential counterparts, independent of other sources in the respective catalogues.
+		\item make\_set\_list.py: Python script used in group\_sources.py to derive ``sets'' of source overlaps on astrometric considerations, based on lists of sources near to each object.
+		\item matching.py: Python code handling the overall cross-match process.
+		\item misc\_functions*: Python and Fortran code that is used in multiple places throughout the cross-match process, and hence cannot be kept within any single script.
+		\item perturbation\_auf.py: Python code to handle the creation of ``dummy'' arrays for the perturbation component of the Astrometric Uncertainty Function. Currently not implemented,- and included for future backwards compatibility.
+		\item photometric\_likelihood.py: Python code to handle the creation of source match likelihoods on photometric grounds. Also currently not implemented, and featuring backwards compatible code.
+		\item shared\_library.f90: Similar to misc\_functions, contains subroutines that are needed across other Fortran modules, and are therefore accessible from those other files.
+		\item Test files, \texttt{tests/}
+		\begin{itemize}
+			\item \_\_init\_\_.py: same as in the parent folder.
+			\item test\_*.py: Unit test scripts, one per Python script in the folder above, to ensure consistency and accuracy of the main codebase.
+			\item Data files, \texttt{data/}
+			\begin{itemize}
+				\item *.txt: example files of the configuration files used in the cross-match process.
+			\end{itemize}
+		\end{itemize}
+	\end{itemize}
+\end{itemize}
 
 In addition, to aid in the review, preliminary documentation -- guides to installation and getting started with the codebase -- is available at \href{https://onoddil.github.io/macauff/}{https://onoddil.github.io/macauff/}.
+This documentation, formed from the raw files in \texttt{macauff/docs} in the repository, is laid out as:
+
+\begin{itemize}
+	\item Homepage: brief description of module and links to various starting pages.
+	\item Installation: details the installation process of the module, its dependencies, and how to run the test suite to ensure successful installation.
+	\item Quick Start: description of how to begin working with the package, describing the necessary files to run a cross-match, and giving examples of how to run matches between two catalogues.
+	\item Inputs: more in-depth descriptions of each parameter that should be specified in the input configuration files used in the cross-match process.
+	\item Documentation: collection of available functions within both the Python and Fortran code in the codebase, describing the inputs and outputs from each function or subroutine in detail.
+\end{itemize}
 
 \section{Future Work}
 The main focus of D3.11.3, now that WP3.11 has an established codebase for its software development aims, is to implement the extended algorithmic aspects of its remit.
@@ -209,5 +258,18 @@ Second, we plan to include an additional improvement to better provide users con
 
 In addition, we plan to extend and improve the user documentation, both for the current features and for the additional features to be implemented.
 This is crucial to ensure that the codebase is useable by the LSST:UK project after the end of this current work package.
+
+\subsection{Data Access Centre Interactions}
+One major aspect of Work Package 3.11 that doesn't quite fit into any particular deliverable, but sits in parallel with them, is the interactions between the ``Dev'' (WP3.11) and ``DAC'' (WP2.5) teams.
+Our significant output is so-called Rubin ``User Generated Products'' -- extra products which use and extend Rubin data.
+We therefore require the DAC to host these products such that users can interact with them once we have generated them for a given catalogue-catalogue combination.
+The workflow also requires the generation of appropriate input tables for the software, which will take the two input catalogues and reduce them to a canonical format for use in the WP3.11 software.
+
+This interaction between WP2.5 and WP3.11 necessitates the formation of workflow documentation, such that these interactions can continue beyond Phase B and WP3.11.
+We are in the process of formalising these interfaces between the DAC team, WP3.11, and the community.
+We attach here a draft overview of the in-progress interface document, as the interactions between the DAC and WP3.11 were moved forward to be part of the D3.11.2 deliverable during the rearrangement of the package (see section \ref{sec:deliverable_name} for a brief outline of the change).
+Formally this interface document should be a part of the D3.11.3 deliverable, however, and hence the full interface document will be finalised in due course.
+
+\includepdf[pages=-,offset=0 0]{WP3-11_DAC-DEV_interface_definition.pdf}
 
 \end{document}
