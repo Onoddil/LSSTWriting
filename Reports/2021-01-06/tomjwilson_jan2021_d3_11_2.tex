@@ -201,9 +201,9 @@ The main deliverables for this work, being software development, are available o
 As per the Project Management Plan, software development should be maintained in a version control repository.
 The main codebase is therefore located at \href{https://github.com/Onoddil/macauff/tree/7891efc9e5edc30febb2d3bcfdb14e97252493d0}{https://github.com/Onoddil/macauff}.
 It features a full test suite for validation, as well as functionality to generate test data to input into the cross-match algorithm for end-to-end verification.
-The folder structure is as follows:
+The folder structure is as follows.
 \begin{itemize}
-	\item Top-level files
+	\item Top-level files.
 	\begin{itemize}
 		\item CHANGES.rst: changelog file, itemising the updates to the codebase.
 		\item LICENSE and README.md: details of licensing of codebase, and a top-level overview description of the software.
@@ -212,12 +212,12 @@ The folder structure is as follows:
 		\item setup.py: main installation file for the Python package, which describes the various dependencies for installing the package, and controls the compiling of \texttt{fortran} code.
 		\item tox.ini: configuration file describing setup of the \texttt{tox} environment for test purposes.
 	\end{itemize}
-	\item Documentation files, \texttt{docs/}
+	\item Documentation files, \texttt{docs/}.
 	\begin{itemize}
 		\item conf.py: configuration file, for Python automated creation of documentation.
 		\item *.rst: files containing the raw text that makes up the documentation of the codebase.
 	\end{itemize}
-	\item Code files, \texttt{macauff/}
+	\item Code files, \texttt{macauff/}.
 	\begin{itemize}
 		\item \_\_init\_\_.py: File used during the installation process, indicating which files and functions should be importable.
 		\item counterpart\_pairing*: Python and Fortran code (\texttt{.py} and \texttt{\_fortran.f90} respectively) to run the cross-match assignment functionality and calculate cross-match probabilities.
@@ -225,14 +225,14 @@ The folder structure is as follows:
 		\item make\_set\_list.py: Python script used in group\_sources.py to derive ``sets'' of source overlaps on astrometric considerations, based on lists of sources near to each object.
 		\item matching.py: Python code handling the overall cross-match process.
 		\item misc\_functions*: Python and Fortran code that is used in multiple places throughout the cross-match process, and hence cannot be kept within any single script.
-		\item perturbation\_auf.py: Python code to handle the creation of ``dummy'' arrays for the perturbation component of the Astrometric Uncertainty Function. Currently not implemented,- and included for future backwards compatibility.
-		\item photometric\_likelihood.py: Python code to handle the creation of source match likelihoods on photometric grounds. Also currently not implemented, and featuring backwards compatible code.
+		\item perturbation\_auf.py: Python code to handle the creation of ``dummy'' arrays for the perturbation component of the Astrometric Uncertainty Function. Main algorithms currently not implemented, and included for future backwards compatibility.
+		\item photometric\_likelihood.py: Python code to handle the creation of source match likelihoods on photometric grounds. Also currently not implemented for the most part, and featuring backwards compatible code.
 		\item shared\_library.f90: Similar to misc\_functions, contains subroutines that are needed across other Fortran modules, and are therefore accessible from those other files.
-		\item Test files, \texttt{tests/}
+		\item Test files, \texttt{tests/}.
 		\begin{itemize}
 			\item \_\_init\_\_.py: same as in the parent folder.
 			\item test\_*.py: Unit test scripts, one per Python script in the folder above, to ensure consistency and accuracy of the main codebase.
-			\item Data files, \texttt{data/}
+			\item Data files, \texttt{data/}.
 			\begin{itemize}
 				\item *.txt: example files of the configuration files used in the cross-match process.
 			\end{itemize}
@@ -241,7 +241,7 @@ The folder structure is as follows:
 \end{itemize}
 
 In addition, to aid in the review, preliminary documentation -- guides to installation and getting started with the codebase -- is available at \href{https://onoddil.github.io/macauff/}{https://onoddil.github.io/macauff/}.
-This documentation, formed from the raw files in \texttt{macauff/docs} in the repository, is laid out as:
+This documentation, formed from the raw files in \texttt{macauff/docs} in the repository, is structured as follows.
 
 \begin{itemize}
 	\item Homepage: brief description of module and links to various starting pages.
@@ -260,7 +260,7 @@ In addition, we plan to extend and improve the user documentation, both for the 
 This is crucial to ensure that the codebase is useable by the LSST:UK project after the end of this current work package.
 
 \subsection{Data Access Centre Interactions}
-One major aspect of Work Package 3.11 that doesn't quite fit into any particular deliverable, but sits in parallel with them, is the interactions between the ``Dev'' (WP3.11) and ``DAC'' (WP2.5) teams.
+One major aspect of WP3.11, which sits in parallel with the deliverables, is the interactions between the ``Dev'' (WP3.11) and ``DAC'' (WP2.5) teams.
 Our significant output is so-called Rubin ``User Generated Products'' -- extra products which use and extend Rubin data.
 We therefore require the DAC to host these products such that users can interact with them once we have generated them for a given catalogue-catalogue combination.
 The workflow also requires the generation of appropriate input tables for the software, which will take the two input catalogues and reduce them to a canonical format for use in the WP3.11 software.
