@@ -1,0 +1,14 @@
+March Minutes
+Tom J Wilson & Tim Naylor
+
+Rebaselining:
+Tom to re-do WP3.11 plan draft for Monday (15th March) to discuss with Tim. Will subsequently form the Apr-Sept six month plan. Needs to include any changes from in-kind contributions, but as far as we are aware there aren't any formal commitments that are required to be included in the plan.
+
+Coding:
+Going fine, hope to have original algorithm fully implemented by next week; currently just concluding unit tests with coverage tests. Next plan is to consider extensions from D3.11.1, but may consider pausing to work on new methodology paper -- but that probably needs code implemented to run Gaia-WISE matches as part of paper for submission. Also needs selection of new WISE catalogue of choice.
+
+Conferences:
+Will apply to Statistical Challenges in Modern Astronomy VII to present WP3.11 work.
+
+Applications:
+Discussed ideas for extending cross-match work in the future, in preparation for operations and continuing LSST-related catalogue work.
